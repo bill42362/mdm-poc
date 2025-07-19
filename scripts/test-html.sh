@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# MDM POC HTML 導向功能測試腳本
+# MDM POC HTML Redirect Function Test Script
 
 BASE_URL="http://localhost:3001"
 
-# 顏色定義
+# Color definitions
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'

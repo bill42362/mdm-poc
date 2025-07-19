@@ -9,20 +9,20 @@ const { logger, requestLogger } = require('./logger');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 安全中間件
+// Security middleware
 app.use(helmet());
 
-// CORS 設定
+// CORS configuration
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*',
   credentials: true
 }));
 
-// 解析 JSON 和 URL 編碼的請求體
+// Parse JSON and URL-encoded request bodies
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// HTTP 請求日誌 (使用 morgan)
+// HTTP request logging (using morgan)
 app.use(morgan('combined', {
   stream: {
     write: (message) => {
@@ -31,13 +31,13 @@ app.use(morgan('combined', {
   }
 }));
 
-// 自定義請求日誌中間件
+// Custom request logging middleware
 app.use(requestLogger);
 
-// 靜態檔案服務
+// Static file serving
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
-// 健康檢查端點
+// Health check endpoint
 app.get('/health', (req, res) => {
   logger.info('Health check requested');
   res.status(200).json({
@@ -48,11 +48,11 @@ app.get('/health', (req, res) => {
   });
 });
 
-// MDM 路由
+// MDM routes
 const mdmRoutes = require('./routes/mdm');
 app.use('/mdm', mdmRoutes);
 
-// 錯誤處理中間件
+// Error handling middleware
 app.use((req, res, next) => {
   logger.warn(`Route not found: ${req.method} ${req.url}`);
   res.status(404).json({
@@ -76,14 +76,14 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 啟動伺服器
+// Start server
 app.listen(PORT, () => {
   logger.info(`MDM POC Server started on port ${PORT}`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
   logger.info(`Health check available at: http://localhost:${PORT}/health`);
 });
 
-// 優雅關閉處理
+// Graceful shutdown handling
 process.on('SIGTERM', () => {
   logger.info('SIGTERM received, shutting down gracefully');
   process.exit(0);

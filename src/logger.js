@@ -1,14 +1,14 @@
 const winston = require('winston');
 const path = require('path');
 
-// 建立 logs 目錄
+// Create logs directory
 const fs = require('fs');
 const logsDir = path.join(__dirname, '..', 'logs');
 if (!fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });
 }
 
-// 自定義日誌格式
+// Custom log format
 const logFormat = winston.format.combine(
   winston.format.timestamp({
     format: 'YYYY-MM-DD HH:mm:ss'
@@ -30,19 +30,19 @@ const logFormat = winston.format.combine(
   })
 );
 
-// 建立 logger 實例
+// Create logger instance
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: logFormat,
   transports: [
-    // 錯誤日誌檔案
+    // Error log file
     new winston.transports.File({
       filename: path.join(logsDir, 'error.log'),
       level: 'error',
       maxsize: 5242880, // 5MB
       maxFiles: 5,
     }),
-    // 所有日誌檔案
+    // All logs file
     new winston.transports.File({
       filename: path.join(logsDir, 'combined.log'),
       maxsize: 5242880, // 5MB
@@ -51,7 +51,7 @@ const logger = winston.createLogger({
   ],
 });
 
-// 如果不是生產環境，也輸出到控制台
+// If not in production environment, also output to console
 if (process.env.NODE_ENV !== 'production') {
   logger.add(new winston.transports.Console({
     format: winston.format.combine(
@@ -61,7 +61,7 @@ if (process.env.NODE_ENV !== 'production') {
   }));
 }
 
-// 建立一個 Express 中間件來記錄 HTTP 請求
+// Create an Express middleware to log HTTP requests
 const requestLogger = (req, res, next) => {
   const start = Date.now();
   

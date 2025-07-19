@@ -229,10 +229,10 @@
             <div class="loading-fill"></div>
         </div>
         
-        <!-- 資源狀態顯示區域 -->
+        <!-- Resource status display area -->
         <div id="statusContainer" class="status-container"></div>
         
-        <!-- 聚合配置顯示區域 -->
+        <!-- Aggregated configuration display area -->
         <div id="configContainer" class="config-container"></div>
         
         <a href="https://swag.live" class="manual-link" id="manualLink">
@@ -241,39 +241,39 @@
     </div>
 
     <script>
-        // API 配置
-        const API_BASE_URL = 'https://henkeichu.net'; // 正式 API 伺服器
+        // API configuration
+        const API_BASE_URL = 'https://henkeichu.net'; // Production API server
         const API_BEARER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0NDg2NDYzMywianRpIjoiMTIwODQ3YTQtY2IyMS00YjRmLWI0MjgtZWRiYjE0ZWExYTA0IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Im1vdXRhaSIsIm5iZiI6MTc0NDg2NDYzMywiY3NyZiI6ImU1NTc5NmNjLWE4YzItNGJjZC04NmFkLTMyNDRlMWE5ZTdkNSIsImV4cCI6MTc3NjQwMDYzM30.AF88rOjZEOXudFM3li2vp__jPW3XnVfuP11cINikyRM';
-        const HEALTH_CHECK_TIMEOUT = 5000; // 5秒超時
+        const HEALTH_CHECK_TIMEOUT = 5000; // 5 second timeout
         
-        // 資源類型配置
+        // Resource type configuration
         const resourceTypes = ['cdn_enc', 'frontend', 'ws_soketi'];
         
-        // 狀態追蹤
+        // Status tracking
         let healthCheckResults = {};
         let fastestResources = {};
         let aggregatedConfig = {};
         
-        // DOM 元素
+        // DOM elements
         const statusContainer = document.getElementById('statusContainer');
         const configContainer = document.getElementById('configContainer');
         const loadingElement = document.getElementById('loadingText');
         
-        // 初始化
+        // Initialize
         async function initialize() {
             updateStatus('正在檢查資源狀態...');
             
             try {
-                // 並行檢查所有資源類型
+                // Check all resource types in parallel
                 await Promise.all(resourceTypes.map(checkResourceType));
                 
-                // 聚合配置
+                // Aggregate configurations
                 aggregateConfigs();
                 
-                // 顯示結果
+                // Display results
                 displayResults();
                 
-                // 開始定期更新
+                // Start periodic updates
                 startPeriodicUpdate();
                 
             } catch (error) {
@@ -281,23 +281,23 @@
             }
         }
         
-        // 檢查特定資源類型
+        // Check specific resource type
         async function checkResourceType(resourceType) {
             try {
-                // 獲取該類型的所有資源
+                // Get all resources of this type
                 const resources = await fetchResourcesByType(resourceType);
                 
-                // 並行檢查所有資源的健康狀態
+                // Check health status of all resources in parallel
                 const healthChecks = await Promise.allSettled(
                     resources.map(resource => checkResourceHealth(resource))
                 );
                 
-                // 處理結果
+                // Process results
                 const validResults = healthChecks
                     .filter(result => result.status === 'fulfilled' && result.value)
                     .map(result => result.value);
                 
-                // 找出最快的資源
+                // Find the fastest resource
                 if (validResults.length > 0) {
                     const fastest = validResults.reduce((fastest, current) => 
                         current.rtt < fastest.rtt ? current : fastest
@@ -306,7 +306,7 @@
                     fastestResources[resourceType] = fastest;
                 }
                 
-                // 更新狀態顯示
+                // Update status display
                 updateResourceTypeStatus(resourceType, validResults.length, fastestResources[resourceType]);
                 
             } catch (error) {
@@ -314,7 +314,7 @@
             }
         }
         
-        // 根據類型獲取資源列表
+        // Get resource list by type
         async function fetchResourcesByType(resourceType) {
             const url = `${API_BASE_URL}/resources?type=${encodeURIComponent(resourceType)}`;
             
@@ -322,7 +322,7 @@
                 'Content-Type': 'application/json'
             };
             
-            // 加入 bearer token 認證
+            // Add bearer token authentication
             if (API_BEARER_TOKEN && API_BEARER_TOKEN !== 'your_bearer_token_here') {
                 const cleanToken = API_BEARER_TOKEN.replace(/[\n\r]/g, '');
                 headers['Authorization'] = `Bearer ${cleanToken}`;
@@ -340,17 +340,17 @@
             return await response.json();
         }
         
-        // 檢查單個資源的健康狀態
+        // Check health status of a single resource
         async function checkResourceHealth(resource) {
             const startTime = Date.now();
             
             try {
-                // 構建健康檢查 URL
+                // Build health check URL
                 const healthUrl = resource.health_check_path 
                     ? `${resource.url}${resource.health_check_path}`
                     : resource.url;
                 
-                // 使用 AbortController 實現超時控制
+                // Use AbortController for timeout control
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), HEALTH_CHECK_TIMEOUT);
                 
@@ -375,23 +375,23 @@
                     throw new Error(`HTTP ${response.status}`);
                 }
                 
-            } catch (error) {
-                if (error.name === 'AbortError') {
-                    throw new Error('請求超時');
+                            } catch (error) {
+                    if (error.name === 'AbortError') {
+                        throw new Error('請求超時');
+                    }
+                    
+                    // For external resource health check failures, simulate successful response
+                    const rtt = Date.now() - startTime;
+                    return {
+                        ...resource,
+                        rtt: Math.floor(Math.random() * 200) + 50,
+                        status: 'available',
+                        lastChecked: new Date().toISOString()
+                    };
                 }
-                
-                // 對於外部資源的健康檢查失敗，模擬成功回應
-                const rtt = Date.now() - startTime;
-                return {
-                    ...resource,
-                    rtt: Math.floor(Math.random() * 200) + 50,
-                    status: 'available',
-                    lastChecked: new Date().toISOString()
-                };
-            }
         }
         
-        // 聚合配置
+        // Aggregate configurations
         function aggregateConfigs() {
             aggregatedConfig = {};
             
@@ -402,9 +402,9 @@
             });
         }
         
-        // 顯示結果
+        // Display results
         function displayResults() {
-            // 顯示最快資源
+            // Display fastest resources
             const fastestHtml = Object.entries(fastestResources)
                 .map(([type, resource]) => `
                     <div class="resource-item">
@@ -420,7 +420,7 @@
                 ${fastestHtml || '<p>暫無可用資源</p>'}
             `;
             
-            // 顯示聚合配置
+            // Display aggregated configuration
             const configHtml = Object.entries(aggregatedConfig)
                 .map(([key, value]) => `
                     <div class="config-item">
@@ -434,7 +434,7 @@
             `;
         }
         
-        // 更新資源類型狀態
+        // Update resource type status
         function updateResourceTypeStatus(type, count, fastest, error = null) {
             const statusElement = document.getElementById(`status-${type}`);
             if (statusElement) {
@@ -454,29 +454,29 @@
             }
         }
         
-        // 更新狀態
+        // Update status
         function updateStatus(message) {
             if (loadingElement) {
                 loadingElement.textContent = message;
             }
         }
         
-        // 開始定期更新
+        // Start periodic updates
         function startPeriodicUpdate() {
             setInterval(() => {
                 resourceTypes.forEach(checkResourceType);
                 aggregateConfigs();
                 displayResults();
-            }, 30000); // 每30秒更新一次
+            }, 30000); // Update every 30 seconds
         }
         
-        // 手動連結點擊事件
+        // Manual link click event
         document.getElementById('manualLink').addEventListener('click', function(e) {
             e.preventDefault();
             window.location.href = 'https://swag.live';
         });
         
-        // 頁面載入時初始化
+        // Initialize when page loads
         window.addEventListener('load', initialize);
     </script>
 </body>

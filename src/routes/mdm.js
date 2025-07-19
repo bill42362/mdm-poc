@@ -29,25 +29,25 @@ router.get('/test-logs', (req, res) => {
 
 
 
-// GET /webclip - 回傳 iOS Web Clip MDM Profile
+// GET /webclip - Return iOS Web Clip MDM Profile
 router.get('/webclip', (req, res) => {
   logger.info('Web Clip MDM profile requested', { 
     userAgent: req.get('User-Agent'),
     ip: req.ip 
   });
 
-  // 從查詢參數獲取配置
+  // Get configuration from query parameters
   const { 
     profileName = 'SWAG Web Clip Profile',
     organization = 'SWAG',
     description = 'Web Clip Profile for SWAG web app',
     identifier = 'com.swag.webclip.profile',
     webClipName = 'SWAG',
-    webClipURL = 'index.html',  // 使用本地 HTML 檔案
-    webClipIcon = 'swag-apple-icon.png'  // 使用本地圖示檔案
+    webClipURL = 'index.html',  // Use local HTML file
+    webClipIcon = 'swag-apple-icon.png'  // Use local icon file
   } = req.query;
 
-  // 生成 Web Clip MDM Profile XML
+  // Generate Web Clip MDM Profile XML
   const mdmProfile = generateWebClipProfile({
     profileName,
     organization,
@@ -58,7 +58,7 @@ router.get('/webclip', (req, res) => {
     webClipIcon
   });
 
-  // 設定回應標頭
+  // Set response headers
   res.set({
     'Content-Type': 'application/x-apple-aspen-config',
     'Content-Disposition': `attachment; filename="${profileName}.mobileconfig"`,
@@ -68,7 +68,7 @@ router.get('/webclip', (req, res) => {
   res.send(mdmProfile);
 });
 
-// GET /webclip/info - 取得 Web Clip Profile 資訊
+// GET /webclip/info - Get Web Clip Profile information
 router.get('/webclip/info', (req, res) => {
   logger.info('MDM profile info requested');
   
@@ -91,7 +91,7 @@ router.get('/webclip/info', (req, res) => {
   });
 });
 
-// GET /webclip/html - 提供導向頁面
+// GET /webclip/html - Provide redirect page
 router.get('/webclip/html', (req, res) => {
   logger.info('Web Clip HTML page requested', { 
     userAgent: req.get('User-Agent'),
@@ -100,14 +100,14 @@ router.get('/webclip/html', (req, res) => {
   res.sendFile(path.join(__dirname, '../assets', 'html', 'index.html'));
 });
 
-// GET /vpn - 回傳 iOS VPN MDM Profile (範例)
+// GET /vpn - Return iOS VPN MDM Profile (example)
 router.get('/vpn', (req, res) => {
   logger.info('VPN MDM profile requested', { 
     userAgent: req.get('User-Agent'),
     ip: req.ip 
   });
 
-  // 從查詢參數獲取配置
+  // Get configuration from query parameters
   const { 
     profileName = 'VPN Profile',
     organization = 'Your Organization',
@@ -118,7 +118,7 @@ router.get('/vpn', (req, res) => {
     vpnType = 'IKEv2'
   } = req.query;
 
-  // 生成 VPN MDM Profile XML (簡化版本)
+  // Generate VPN MDM Profile XML (simplified version)
   const vpnProfile = generateVPNProfile({
     profileName,
     organization,
@@ -129,7 +129,7 @@ router.get('/vpn', (req, res) => {
     vpnType
   });
 
-  // 設定回應標頭
+  // Set response headers
   res.set({
     'Content-Type': 'application/x-apple-aspen-config',
     'Content-Disposition': `attachment; filename="${profileName}.mobileconfig"`,
@@ -139,7 +139,7 @@ router.get('/vpn', (req, res) => {
   res.send(vpnProfile);
 });
 
-// GET /vpn/info - 取得 VPN Profile 資訊
+// GET /vpn/info - Get VPN Profile information
 router.get('/vpn/info', (req, res) => {
   logger.info('VPN profile info requested');
   
@@ -162,7 +162,7 @@ router.get('/vpn/info', (req, res) => {
   });
 });
 
-// 輔助函數：生成 Web Clip MDM Profile
+// Helper function: Generate Web Clip MDM Profile
 function generateWebClipProfile({ profileName, organization, description, identifier, webClipName, webClipURL, webClipIcon }) {
   const uuid = generateUUID();
   const webClipUUID = generateUUID();
@@ -226,7 +226,7 @@ function generateWebClipProfile({ profileName, organization, description, identi
 </plist>`;
 }
 
-// 輔助函數：生成 UUID
+// Helper function: Generate UUID
 function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     const r = Math.random() * 16 | 0;
@@ -235,14 +235,14 @@ function generateUUID() {
   });
 }
 
-// 輔助函數：生成 HTML 資料
+// Helper function: Generate HTML data
 function generateHTMLData(htmlUrl) {
   try {
-    // 如果 htmlUrl 是本地檔案名稱，則讀取本地檔案
+    // If htmlUrl is a local file name, read the local file
     if (htmlUrl && !htmlUrl.startsWith('http')) {
       const htmlPath = path.join(__dirname, '../assets/html', htmlUrl);
       
-      // 檢查檔案是否存在
+      // Check if file exists
       if (fs.existsSync(htmlPath)) {
         const htmlData = fs.readFileSync(htmlPath, 'utf8');
         const base64Data = Buffer.from(htmlData, 'utf8').toString('base64');
@@ -254,7 +254,7 @@ function generateHTMLData(htmlUrl) {
         return `data:text/html;base64,${base64Data}`;
       } else {
         logger.warn('HTML file not found, falling back to default', { htmlPath });
-        // 檔案不存在時，回退到預設 HTML
+        // If file doesn't exist, fallback to default HTML
         const defaultHtmlPath = path.join(__dirname, '../assets/html/index.html');
         if (fs.existsSync(defaultHtmlPath)) {
           const htmlData = fs.readFileSync(defaultHtmlPath, 'utf8');
@@ -270,13 +270,13 @@ function generateHTMLData(htmlUrl) {
       }
     }
     
-    // 如果是 URL，直接返回
+    // If it's a URL, return directly
     if (htmlUrl && htmlUrl.startsWith('http')) {
       logger.info('HTML URL provided', { htmlUrl });
       return htmlUrl;
     }
     
-    // 如果沒有提供 HTML，使用預設 HTML
+    // If no HTML provided, use default HTML
     const defaultHtmlPath = path.join(__dirname, '../assets/html/index.html');
     if (fs.existsSync(defaultHtmlPath)) {
       const htmlData = fs.readFileSync(defaultHtmlPath, 'utf8');
@@ -297,14 +297,14 @@ function generateHTMLData(htmlUrl) {
   }
 }
 
-// 輔助函數：生成圖示資料
+// Helper function: Generate icon data
 function generateIconData(iconUrl) {
   try {
-    // 如果 iconUrl 是本地檔案名稱，則讀取本地檔案
+    // If iconUrl is a local file name, read the local file
     if (iconUrl && !iconUrl.startsWith('http')) {
       const iconPath = path.join(__dirname, '../assets/icons', iconUrl);
       
-      // 檢查檔案是否存在
+      // Check if file exists
       if (fs.existsSync(iconPath)) {
         const iconData = fs.readFileSync(iconPath);
         const base64Data = iconData.toString('base64');
@@ -320,13 +320,13 @@ function generateIconData(iconUrl) {
       }
     }
     
-    // 如果是 URL，可以加入下載邏輯（未來擴展）
+    // If it's a URL, can add download logic (future expansion)
     if (iconUrl && iconUrl.startsWith('http')) {
       logger.info('Icon URL provided, but local file reading is preferred', { iconUrl });
       return '';
     }
     
-    // 如果沒有提供圖示，使用預設圖示
+    // If no icon provided, use default icon
     const defaultIconPath = path.join(__dirname, '../assets/icons/swag-apple-icon.png');
     if (fs.existsSync(defaultIconPath)) {
       const iconData = fs.readFileSync(defaultIconPath);
@@ -347,7 +347,7 @@ function generateIconData(iconUrl) {
   }
 }
 
-// 輔助函數：生成 VPN MDM Profile
+// Helper function: Generate VPN MDM Profile
 function generateVPNProfile({ profileName, organization, description, identifier, vpnName, vpnServer, vpnType }) {
   const uuid = generateUUID();
   const vpnUUID = generateUUID();

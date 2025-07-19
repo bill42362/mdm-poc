@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# MDM POC 清理腳本
-# 停止所有相關的進程和服務
+# MDM POC Cleanup Script
+# Stop all related processes and services
 
 echo "🧹 開始清理 MDM POC 相關進程..."
 

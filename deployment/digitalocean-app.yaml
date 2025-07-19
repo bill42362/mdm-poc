@@ -1,0 +1,30 @@
+name: mdm-poc
+services:
+- name: mdm-poc-server
+  source_dir: /
+  github:
+    repo: your-username/mdm-poc
+    branch: main
+  run_command: node src/app.js
+  environment_slug: node-js
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  http_port: 3000
+  routes:
+  - path: /
+  envs:
+  - key: NODE_ENV
+    value: production
+  - key: PORT
+    value: "3000"
+  - key: LOG_LEVEL
+    value: info
+  - key: ALLOWED_ORIGINS
+    value: "*"
+  health_check:
+    http_path: /health
+    initial_delay_seconds: 10
+    period_seconds: 30
+    timeout_seconds: 10
+    success_threshold: 1
+    failure_threshold: 3 

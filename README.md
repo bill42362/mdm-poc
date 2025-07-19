@@ -92,10 +92,43 @@ logger.error('Error message', { additional: 'data' });
 
 ## 部署
 
-1. 設定 `NODE_ENV=production`
-2. 設定適當的 `PORT` 和 `ALLOWED_ORIGINS`
-3. 確保日誌目錄有寫入權限
-4. 使用 PM2 或其他程序管理器
+### 本地 Docker 測試
+
+```bash
+# 建立 Docker 映像
+docker build -t mdm-poc .
+
+# 使用 Docker Compose 運行
+docker-compose up -d
+
+# 測試應用程式
+curl http://localhost:3000/health
+```
+
+### Digital Ocean 部署
+
+#### 方法 1: App Platform (推薦)
+```bash
+# 使用 Digital Ocean App Platform
+doctl apps create --spec deployment/digitalocean-app.yaml
+```
+
+#### 方法 2: Container Registry + Droplet
+```bash
+# 1. 建立 Container Registry
+doctl registry create your-registry-name
+
+# 2. 認證 Docker
+doctl registry login
+
+# 3. 建立和推送映像
+./scripts/build-and-push.sh registry.digitalocean.com your-registry/mdm-poc latest
+
+# 4. 在 Droplet 上部署
+docker-compose -f deployment/docker-compose.prod.yml up -d
+```
+
+詳細部署說明請參考 `deployment/README.md`
 
 ## 授權
 

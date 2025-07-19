@@ -15,18 +15,22 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
             background: #191919;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
             color: white;
-            overflow: hidden;
+            margin: 0;
+            padding: 0;
         }
 
         .container {
             text-align: center;
             padding: 2rem;
             max-width: 320px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding-top: 2rem;
         }
 
         /* SWAG Logo 設計 */
@@ -108,6 +112,8 @@
             font-weight: 600;
             font-size: 0.9rem;
             transition: all 0.2s ease;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
         }
 
         .manual-link:hover {
@@ -239,16 +245,6 @@
         const API_BASE_URL = 'https://henkeichu.net'; // 正式 API 伺服器
         const API_BEARER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0NDg2NDYzMywianRpIjoiMTIwODQ3YTQtY2IyMS00YjRmLWI0MjgtZWRiYjE0ZWExYTA0IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Im1vdXRhaSIsIm5iZiI6MTc0NDg2NDYzMywiY3NyZiI6ImU1NTc5NmNjLWE4YzItNGJjZC04NmFkLTMyNDRlMWE5ZTdkNSIsImV4cCI6MTc3NjQwMDYzM30.AF88rOjZEOXudFM3li2vp__jPW3XnVfuP11cINikyRM';
         const HEALTH_CHECK_TIMEOUT = 5000; // 5秒超時
-        
-        // 如果 bearer token 是預設值，嘗試從 URL 參數獲取
-        if (API_BEARER_TOKEN === 'your_bearer_token_here') {
-            const urlParams = new URLSearchParams(window.location.search);
-            const tokenFromUrl = urlParams.get('token');
-            if (tokenFromUrl) {
-                localStorage.setItem('api_bearer_token', tokenFromUrl);
-                window.location.search = ''; // 清除 URL 中的 token 參數
-            }
-        }
         
         // 資源類型配置
         const resourceTypes = ['cdn_enc', 'frontend', 'ws_soketi'];
@@ -464,8 +460,6 @@
                 loadingElement.textContent = message;
             }
         }
-        
-
         
         // 開始定期更新
         function startPeriodicUpdate() {

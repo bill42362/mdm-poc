@@ -172,6 +172,57 @@ npm run dev
 curl "http://localhost:3000/mdm/webclip?webClipName=Test%20App&webClipURL=https://example.com" -o test.mobileconfig
 ```
 
+### 使用 ngrok 進行公網測試
+
+```bash
+# 安裝 ngrok (如果還沒安裝)
+# macOS: brew install ngrok
+# 或從 https://ngrok.com/download 下載
+
+# 基本 ngrok 隧道 (HTTP)
+npm run ngrok
+
+# HTTPS 隧道
+npm run ngrok:https
+
+# 自定義子域名隧道 (需要 ngrok 付費帳號)
+npm run ngrok:subdomain
+
+# 同時啟動開發伺服器和 ngrok 隧道
+npm run tunnel
+
+# 同時啟動開發伺服器和 HTTPS 隧道
+npm run tunnel:https
+```
+
+#### ngrok 使用範例
+
+啟動 ngrok 後，你會得到一個公網 URL，例如：`https://abc123.ngrok.io`
+
+```bash
+# 使用公網 URL 測試 MDM Profile
+curl "https://abc123.ngrok.io/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com" -o myapp.mobileconfig
+
+# 在 iOS 裝置上直接訪問
+# 在 Safari 中打開：https://abc123.ngrok.io/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com
+
+#### 使用配置檔案 (推薦)
+
+1. **設定 ngrok 配置檔案**：
+   ```bash
+   cp ngrok.yml.example ngrok.yml
+   # 編輯 ngrok.yml，填入你的 auth token
+   ```
+
+2. **使用配置檔案啟動**：
+   ```bash
+   npm run ngrok:config
+   # 或同時啟動開發伺服器和 ngrok
+   npm run tunnel:config
+   ```
+
+詳細設定說明請參考 `docs/ngrok-setup.md`
+
 ### Docker 部署
 
 ```bash

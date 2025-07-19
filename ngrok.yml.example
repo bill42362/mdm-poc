@@ -1,0 +1,23 @@
+# ngrok 配置檔案範例
+# 複製此檔案為 ngrok.yml 並填入你的 auth token
+
+version: "2"
+authtoken: "your_ngrok_auth_token_here"  # 替換為你的 ngrok auth token
+
+tunnels:
+  mdm-poc:
+    addr: 3000
+    proto: http
+    subdomain: mdm-poc  # 需要付費帳號
+    inspect: true
+    
+  mdm-poc-https:
+    addr: 3000
+    proto: http
+    scheme: https
+    inspect: true
+    
+  mdm-poc-basic:
+    addr: 3000
+    proto: http
+    inspect: true 

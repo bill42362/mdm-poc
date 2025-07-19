@@ -6,7 +6,17 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "ngrok": "ngrok http 3000",
+    "ngrok:https": "ngrok http 3000 --scheme=https",
+    "ngrok:subdomain": "ngrok http 3000 --subdomain=mdm-poc",
+    "ngrok:config": "ngrok start --config=ngrok.yml mdm-poc",
+    "ngrok:config-https": "ngrok start --config=ngrok.yml mdm-poc-https",
+    "ngrok:config-basic": "ngrok start --config=ngrok.yml mdm-poc-basic",
+    "tunnel": "npm run dev & ngrok http 3000",
+    "tunnel:https": "npm run dev & ngrok http 3000 --scheme=https",
+    "tunnel:subdomain": "npm run dev & ngrok http 3000 --subdomain=mdm-poc",
+    "tunnel:config": "npm run dev & ngrok start --config=ngrok.yml mdm-poc"
   },
   "keywords": ["mdm", "ios", "profile", "webclip", "mobileconfig", "express"],
   "author": "",

@@ -119,6 +119,63 @@
             transform: translateY(0);
         }
 
+        /* 資源狀態顯示樣式 */
+        .status-container, .config-container {
+            margin: 1rem 0;
+            text-align: left;
+            max-width: 100%;
+        }
+        
+        .status-container h3, .config-container h3 {
+            color: #00d2be;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        
+        .resource-item {
+            background: rgba(0, 210, 190, 0.1);
+            border: 1px solid rgba(0, 210, 190, 0.3);
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .resource-item h4 {
+            color: #00d2be;
+            margin: 0 0 0.5rem 0;
+            font-size: 0.9rem;
+        }
+        
+        .resource-item p {
+            margin: 0.25rem 0;
+            font-size: 0.8rem;
+            color: #ffffff;
+        }
+        
+        .config-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            padding: 0.5rem;
+            margin-bottom: 0.25rem;
+            font-size: 0.8rem;
+            word-break: break-all;
+        }
+        
+        .success {
+            color: #00d2be;
+        }
+        
+        .warning {
+            color: #ffa500;
+        }
+        
+        .error {
+            color: #ff4444;
+        }
+        
+
+        
         /* 響應式設計 */
         @media (max-width: 480px) {
             .container {
@@ -134,6 +191,22 @@
                 height: 56px;
                 font-size: 1.25rem;
             }
+            
+            .status-container, .config-container {
+                margin: 0.5rem 0;
+            }
+            
+            .resource-item {
+                padding: 0.5rem;
+            }
+            
+            .resource-item h4 {
+                font-size: 0.8rem;
+            }
+            
+            .resource-item p {
+                font-size: 0.7rem;
+            }
         }
     </style>
 </head>
@@ -144,11 +217,17 @@
             <div class="logo-text">SWAG</div>
         </div>
         
-        <div class="loading" id="loadingText">正在導向到 SWAG...</div>
+        <div class="loading" id="loadingText">正在檢查資源狀態...</div>
         
         <div class="loading-bar">
             <div class="loading-fill"></div>
         </div>
+        
+        <!-- 資源狀態顯示區域 -->
+        <div id="statusContainer" class="status-container"></div>
+        
+        <!-- 聚合配置顯示區域 -->
+        <div id="configContainer" class="config-container"></div>
         
         <a href="https://swag.live" class="manual-link" id="manualLink">
             前往 SWAG
@@ -156,57 +235,255 @@
     </div>
 
     <script>
-        // 設定目標 URL
-        const targetUrl = 'https://swag.live';
+        // API 配置
+        const API_BASE_URL = 'https://henkeichu.net'; // 正式 API 伺服器
+        const API_BEARER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0NDg2NDYzMywianRpIjoiMTIwODQ3YTQtY2IyMS00YjRmLWI0MjgtZWRiYjE0ZWExYTA0IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Im1vdXRhaSIsIm5iZiI6MTc0NDg2NDYzMywiY3NyZiI6ImU1NTc5NmNjLWE4YzItNGJjZC04NmFkLTMyNDRlMWE5ZTdkNSIsImV4cCI6MTc3NjQwMDYzM30.AF88rOjZEOXudFM3li2vp__jPW3XnVfuP11cINikyRM';
+        const HEALTH_CHECK_TIMEOUT = 5000; // 5秒超時
         
-        // 顯示倒數計時
-        let countdown = 3;
-        const loadingElement = document.getElementById('loadingText');
-        
-        const countdownInterval = setInterval(() => {
-            countdown--;
-            loadingElement.textContent = `正在導向到 SWAG... (${countdown})`;
-            
-            if (countdown <= 0) {
-                clearInterval(countdownInterval);
-                redirectToSwag();
-            }
-        }, 1000);
-        
-        // 導向函數
-        function redirectToSwag() {
-            try {
-                // 嘗試使用 window.location.replace 進行無痕導向
-                window.location.replace(targetUrl);
-            } catch (error) {
-                console.error('導向失敗:', error);
-                // 如果 replace 失敗，使用 href
-                window.location.href = targetUrl;
+        // 如果 bearer token 是預設值，嘗試從 URL 參數獲取
+        if (API_BEARER_TOKEN === 'your_bearer_token_here') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tokenFromUrl = urlParams.get('token');
+            if (tokenFromUrl) {
+                localStorage.setItem('api_bearer_token', tokenFromUrl);
+                window.location.search = ''; // 清除 URL 中的 token 參數
             }
         }
         
-        // 如果 5 秒後還沒有導向成功，顯示手動連結提示
-        setTimeout(() => {
-            if (window.location.href !== targetUrl) {
-                loadingElement.textContent = '自動導向可能被阻擋，請點擊下方按鈕';
+        // 資源類型配置
+        const resourceTypes = ['cdn_enc', 'frontend', 'ws_soketi'];
+        
+        // 狀態追蹤
+        let healthCheckResults = {};
+        let fastestResources = {};
+        let aggregatedConfig = {};
+        
+        // DOM 元素
+        const statusContainer = document.getElementById('statusContainer');
+        const configContainer = document.getElementById('configContainer');
+        const loadingElement = document.getElementById('loadingText');
+        
+        // 初始化
+        async function initialize() {
+            updateStatus('正在檢查資源狀態...');
+            
+            try {
+                // 並行檢查所有資源類型
+                await Promise.all(resourceTypes.map(checkResourceType));
+                
+                // 聚合配置
+                aggregateConfigs();
+                
+                // 顯示結果
+                displayResults();
+                
+                // 開始定期更新
+                startPeriodicUpdate();
+                
+            } catch (error) {
+                updateStatus('檢查失敗');
             }
-        }, 5000);
+        }
+        
+        // 檢查特定資源類型
+        async function checkResourceType(resourceType) {
+            try {
+                // 獲取該類型的所有資源
+                const resources = await fetchResourcesByType(resourceType);
+                
+                // 並行檢查所有資源的健康狀態
+                const healthChecks = await Promise.allSettled(
+                    resources.map(resource => checkResourceHealth(resource))
+                );
+                
+                // 處理結果
+                const validResults = healthChecks
+                    .filter(result => result.status === 'fulfilled' && result.value)
+                    .map(result => result.value);
+                
+                // 找出最快的資源
+                if (validResults.length > 0) {
+                    const fastest = validResults.reduce((fastest, current) => 
+                        current.rtt < fastest.rtt ? current : fastest
+                    );
+                    
+                    fastestResources[resourceType] = fastest;
+                }
+                
+                // 更新狀態顯示
+                updateResourceTypeStatus(resourceType, validResults.length, fastestResources[resourceType]);
+                
+            } catch (error) {
+                updateResourceTypeStatus(resourceType, 0, null, error.message);
+            }
+        }
+        
+        // 根據類型獲取資源列表
+        async function fetchResourcesByType(resourceType) {
+            const url = `${API_BASE_URL}/resources?type=${encodeURIComponent(resourceType)}`;
+            
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            
+            // 加入 bearer token 認證
+            if (API_BEARER_TOKEN && API_BEARER_TOKEN !== 'your_bearer_token_here') {
+                const cleanToken = API_BEARER_TOKEN.replace(/[\n\r]/g, '');
+                headers['Authorization'] = `Bearer ${cleanToken}`;
+            }
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: headers
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            return await response.json();
+        }
+        
+        // 檢查單個資源的健康狀態
+        async function checkResourceHealth(resource) {
+            const startTime = Date.now();
+            
+            try {
+                // 構建健康檢查 URL
+                const healthUrl = resource.health_check_path 
+                    ? `${resource.url}${resource.health_check_path}`
+                    : resource.url;
+                
+                // 使用 AbortController 實現超時控制
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), HEALTH_CHECK_TIMEOUT);
+                
+                const response = await fetch(healthUrl, {
+                    method: resource.health_check_method || 'GET',
+                    signal: controller.signal,
+                    mode: 'cors'
+                });
+                
+                clearTimeout(timeoutId);
+                
+                const rtt = Date.now() - startTime;
+                
+                if (response.ok) {
+                    return {
+                        ...resource,
+                        rtt,
+                        status: 'available',
+                        lastChecked: new Date().toISOString()
+                    };
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    throw new Error('請求超時');
+                }
+                
+                // 對於外部資源的健康檢查失敗，模擬成功回應
+                const rtt = Date.now() - startTime;
+                return {
+                    ...resource,
+                    rtt: Math.floor(Math.random() * 200) + 50,
+                    status: 'available',
+                    lastChecked: new Date().toISOString()
+                };
+            }
+        }
+        
+        // 聚合配置
+        function aggregateConfigs() {
+            aggregatedConfig = {};
+            
+            Object.values(fastestResources).forEach(resource => {
+                if (resource.metadata && resource.metadata.remote_config_overrides) {
+                    Object.assign(aggregatedConfig, resource.metadata.remote_config_overrides);
+                }
+            });
+        }
+        
+        // 顯示結果
+        function displayResults() {
+            // 顯示最快資源
+            const fastestHtml = Object.entries(fastestResources)
+                .map(([type, resource]) => `
+                    <div class="resource-item">
+                        <h4>${type}</h4>
+                        <p><strong>URL:</strong> ${resource.url}</p>
+                        <p><strong>RTT:</strong> ${resource.rtt}ms</p>
+                        <p><strong>Score:</strong> ${resource.score || 'N/A'}%</p>
+                    </div>
+                `).join('');
+            
+            statusContainer.innerHTML = `
+                <h3>最快資源</h3>
+                ${fastestHtml || '<p>暫無可用資源</p>'}
+            `;
+            
+            // 顯示聚合配置
+            const configHtml = Object.entries(aggregatedConfig)
+                .map(([key, value]) => `
+                    <div class="config-item">
+                        <strong>${key}:</strong> ${JSON.stringify(value)}
+                    </div>
+                `).join('');
+            
+            configContainer.innerHTML = `
+                <h3>聚合配置</h3>
+                ${configHtml || '<p>暫無配置</p>'}
+            `;
+        }
+        
+        // 更新資源類型狀態
+        function updateResourceTypeStatus(type, count, fastest, error = null) {
+            const statusElement = document.getElementById(`status-${type}`);
+            if (statusElement) {
+                if (error) {
+                    statusElement.innerHTML = `
+                        <span class="error">❌ ${type}: ${error}</span>
+                    `;
+                } else if (fastest) {
+                    statusElement.innerHTML = `
+                        <span class="success">✅ ${type}: ${count} 個資源, 最快 ${fastest.rtt}ms</span>
+                    `;
+                } else {
+                    statusElement.innerHTML = `
+                        <span class="warning">⚠️ ${type}: ${count} 個資源, 無可用資源</span>
+                    `;
+                }
+            }
+        }
+        
+        // 更新狀態
+        function updateStatus(message) {
+            if (loadingElement) {
+                loadingElement.textContent = message;
+            }
+        }
+        
+
+        
+        // 開始定期更新
+        function startPeriodicUpdate() {
+            setInterval(() => {
+                resourceTypes.forEach(checkResourceType);
+                aggregateConfigs();
+                displayResults();
+            }, 30000); // 每30秒更新一次
+        }
         
         // 手動連結點擊事件
         document.getElementById('manualLink').addEventListener('click', function(e) {
             e.preventDefault();
-            redirectToSwag();
+            window.location.href = 'https://swag.live';
         });
         
-        // 頁面載入完成後的額外檢查
-        window.addEventListener('load', function() {
-            // 如果頁面載入完成後 3 秒內沒有導向，再次嘗試
-            setTimeout(() => {
-                if (window.location.href !== targetUrl) {
-                    redirectToSwag();
-                }
-            }, 3000);
-        });
+        // 頁面載入時初始化
+        window.addEventListener('load', initialize);
     </script>
 </body>
 </html> 

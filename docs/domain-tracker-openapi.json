@@ -1,0 +1,631 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+      "title": "Resource Dispatcher API",
+      "version": "1.0.0",
+      "description": "API for managing and monitoring web resources"
+    },
+    "servers": [
+      {
+        "url": "/",
+        "description": "Default server"
+      }
+    ],
+    "components": {
+      "schemas": {
+        "ResourceReport": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Unique identifier for the report"
+            },
+            "resource_id": {
+              "type": "string",
+              "description": "ID of the resource this report belongs to"
+            },
+            "status": {
+              "type": "string",
+              "enum": ["available", "unavailable"],
+              "description": "Status of the resource at the time of reporting"
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time",
+              "description": "When the report was created"
+            },
+            "metadata": {
+              "type": "object",
+              "description": "Additional metadata about the report"
+            },
+            "rtt": {
+              "type": "integer",
+              "nullable": true,
+              "description": "Round-trip time in milliseconds"
+            }
+          },
+          "required": ["id", "resource_id", "status", "created_at"]
+        },
+        "Resource": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "description": "Type of resource"
+            },
+            "url": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL of the resource"
+            },
+            "health_check_path": {
+              "type": "string",
+              "description": "Path to append to the base URL for health checks"
+            },
+            "health_check_method": {
+              "type": "string",
+              "enum": ["GET", "HEAD"],
+              "description": "HTTP method to use for health checks"
+            },
+            "score": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100,
+              "description": "Availability score (percentage)"
+            },
+            "last_checked": {
+              "type": "string",
+              "format": "date-time",
+              "nullable": true,
+              "description": "When the resource was last checked"
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time",
+              "description": "When the resource was created"
+            },
+            "metadata": {
+              "type": "object",
+              "description": "Additional metadata associated with the resource"
+            },
+            "labels": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Labels associated with the resource"
+            }
+          },
+          "required": ["type", "url"]
+        },
+        "ResourceStatus": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL of the resource to update"
+            },
+            "status": {
+              "type": "string",
+              "enum": ["available", "unavailable"],
+              "description": "New status of the resource"
+            },
+            "rtt": {
+              "type": "integer",
+              "nullable": true,
+              "description": "Round-trip time in milliseconds"
+            },
+            "metadata": {
+              "type": "object",
+              "description": "Additional metadata about the status update"
+            }
+          },
+          "required": ["url", "status", "rtt"]
+        },
+        "ResourceLabels": {
+          "type": "object",
+          "properties": {
+            "labels": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "List of labels to set for the resource"
+            }
+          },
+          "required": ["labels"]
+        },
+        "Error": {
+          "type": "object",
+          "properties": {
+            "error": {
+              "type": "string",
+              "description": "Error message"
+            },
+            "messages": {
+              "type": "object",
+              "description": "Detailed validation error messages"
+            }
+          }
+        }
+      },
+      "securitySchemes": {
+        "bearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT",
+          "description": "JWT authorization token"
+        }
+      }
+    },
+    "paths": {
+      "/health": {
+        "get": {
+          "summary": "Health check endpoint",
+          "description": "Check if the API is running",
+          "operationId": "health_check",
+          "responses": {
+            "200": {
+              "description": "API is healthy",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "example": "healthy"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "tags": ["System"]
+        }
+      },
+      "/docs": {
+        "get": {
+          "summary": "API Documentation UI",
+          "description": "Interactive Swagger UI for exploring the API",
+          "operationId": "swagger_ui",
+          "responses": {
+            "200": {
+              "description": "HTML page with Swagger UI",
+              "content": {
+                "text/html": {}
+              }
+            }
+          },
+          "tags": ["System"]
+        }
+      },
+      "/openapi.json": {
+        "get": {
+          "summary": "OpenAPI Specification",
+          "description": "Get the OpenAPI specification file in JSON format",
+          "operationId": "openapi_spec",
+          "responses": {
+            "200": {
+              "description": "OpenAPI specification in JSON format",
+              "content": {
+                "application/json": {}
+              }
+            }
+          },
+          "tags": ["System"]
+        }
+      },
+      "/resources": {
+        "get": {
+          "summary": "List resources",
+          "description": "Get a paginated list of resources with optional filtering",
+          "operationId": "get_resources",
+          "parameters": [
+            {
+              "name": "page",
+              "in": "query",
+              "description": "Page number for pagination",
+              "schema": {
+                "type": "integer",
+                "default": 1,
+                "minimum": 1
+              }
+            },
+            {
+              "name": "limit",
+              "in": "query",
+              "description": "Number of items per page",
+              "schema": {
+                "type": "integer",
+                "default": 10,
+                "minimum": 1,
+                "maximum": 100
+              }
+            },
+            {
+              "name": "type",
+              "in": "query",
+              "description": "Filter resources by type",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "freshness",
+              "in": "query",
+              "description": "Filter resources by freshness in seconds (if omitted, no freshness filtering is applied)",
+              "schema": {
+                "type": "integer",
+                "minimum": 1,
+                "nullable": true
+              }
+            },
+            {
+              "name": "labels",
+              "in": "query",
+              "description": "Filter resources by labels (multiple values allowed)",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "style": "form",
+              "explode": false
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "List of resources",
+              "headers": {
+                "Link": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "Pagination links according to RFC 5988"
+                },
+                "X-Total-Count": {
+                  "schema": {
+                    "type": "integer"
+                  },
+                  "description": "Total count of resources matching the filter"
+                },
+                "Cache-Control": {
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "Cache control header"
+                }
+              },
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Resource"
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized - authentication required"
+            },
+            "422": {
+              "description": "Validation error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "tags": ["Resources"]
+        }
+      },
+      "/resources/status": {
+        "put": {
+          "summary": "Update resource status",
+          "description": "Report the current status of a resource",
+          "operationId": "update_resource_status",
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceStatus"
+                }
+              }
+            },
+            "required": true
+          },
+          "responses": {
+            "200": {
+              "description": "Resource updated successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Resource"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized - authentication required"
+            },
+            "404": {
+              "description": "Resource not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error": {
+                        "type": "string",
+                        "example": "Resource not found"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "422": {
+              "description": "Validation error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "tags": ["Resources"]
+        }
+      },
+      "/resource-types": {
+        "get": {
+          "summary": "Get resource types",
+          "description": "Get a list of all unique resource types in the system with optional filtering",
+          "operationId": "get_resource_types",
+          "parameters": [
+            {
+              "name": "labels",
+              "in": "query",
+              "description": "Filter resource types by labels (multiple values allowed)",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "style": "form",
+              "explode": false
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "List of resource types",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized - authentication required"
+            }
+          },
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "tags": ["Resources"]
+        }
+      },
+      "/api/resources/{resource_id}": {
+        "get": {
+          "summary": "Get resource by ID",
+          "description": "Fetch a single resource by its ID (admin only)",
+          "operationId": "get_resource",
+          "parameters": [
+            {
+              "name": "resource_id",
+              "in": "path",
+              "required": true,
+              "description": "ID of the resource to fetch",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Resource details",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Resource"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized - authentication required"
+            },
+            "403": {
+              "description": "Forbidden - admin access required"
+            },
+            "404": {
+              "description": "Resource not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "tags": ["Resources"]
+        }
+      },
+      "/api/resources/{resource_id}/reports": {
+        "get": {
+          "summary": "Get resource reports",
+          "description": "Fetch reports for a specific resource (admin only)",
+          "operationId": "get_resource_reports",
+          "parameters": [
+            {
+              "name": "resource_id",
+              "in": "path",
+              "required": true,
+              "description": "ID of the resource to fetch reports for",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "page",
+              "in": "query",
+              "description": "Page number for pagination",
+              "schema": {
+                "type": "integer",
+                "minimum": 1,
+                "default": 1
+              }
+            },
+            {
+              "name": "limit",
+              "in": "query",
+              "description": "Number of reports per page",
+              "schema": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 200,
+                "default": 50
+              }
+            },
+            {
+              "name": "status",
+              "in": "query",
+              "description": "Filter reports by status",
+              "schema": {
+                "type": "string",
+                "enum": ["available", "unavailable"]
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Resource reports with pagination",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "reports": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ResourceReport"
+                        }
+                      },
+                      "pagination": {
+                        "type": "object",
+                        "properties": {
+                          "page": {
+                            "type": "integer"
+                          },
+                          "limit": {
+                            "type": "integer"
+                          },
+                          "total": {
+                            "type": "integer"
+                          },
+                          "total_pages": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized - authentication required"
+            },
+            "403": {
+              "description": "Forbidden - admin access required"
+            },
+            "404": {
+              "description": "Resource not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            },
+            "422": {
+              "description": "Validation error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Error"
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "tags": ["Resources"]
+        }
+      }
+    },
+    "tags": [
+      {
+        "name": "System",
+        "description": "System-level operations"
+      },
+      {
+        "name": "Resources",
+        "description": "Operations for managing resources"
+      }
+    ],
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  }

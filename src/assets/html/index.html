@@ -54,11 +54,11 @@
         }
 
         @keyframes logoPulse {
-            0%, 100% { 
+            0%, 100% {
                 transform: scale(1);
                 box-shadow: 0 0 0 0 rgba(0, 210, 190, 0.4);
             }
-            50% { 
+            50% {
                 transform: scale(1.05);
                 box-shadow: 0 0 0 8px rgba(0, 210, 190, 0.1);
             }
@@ -131,14 +131,14 @@
             text-align: left;
             max-width: 100%;
         }
-        
+
         .status-container h3, .config-container h3 {
             color: #00d2be;
             font-size: 1.1rem;
             margin-bottom: 0.5rem;
             text-align: center;
         }
-        
+
         .resource-item {
             background: rgba(0, 210, 190, 0.1);
             border: 1px solid rgba(0, 210, 190, 0.3);
@@ -146,19 +146,19 @@
             padding: 0.75rem;
             margin-bottom: 0.5rem;
         }
-        
+
         .resource-item h4 {
             color: #00d2be;
             margin: 0 0 0.5rem 0;
             font-size: 0.9rem;
         }
-        
+
         .resource-item p {
             margin: 0.25rem 0;
             font-size: 0.8rem;
             color: #ffffff;
         }
-        
+
         .config-item {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 4px;
@@ -167,49 +167,49 @@
             font-size: 0.8rem;
             word-break: break-all;
         }
-        
+
         .success {
             color: #00d2be;
         }
-        
+
         .warning {
             color: #ffa500;
         }
-        
+
         .error {
             color: #ff4444;
         }
-        
 
-        
+
+
         /* 響應式設計 */
         @media (max-width: 480px) {
             .container {
                 padding: 1.5rem;
             }
-            
+
             .logo-text {
                 font-size: 1.75rem;
             }
-            
+
             .logo-icon {
                 width: 56px;
                 height: 56px;
                 font-size: 1.25rem;
             }
-            
+
             .status-container, .config-container {
                 margin: 0.5rem 0;
             }
-            
+
             .resource-item {
                 padding: 0.5rem;
             }
-            
+
             .resource-item h4 {
                 font-size: 0.8rem;
             }
-            
+
             .resource-item p {
                 font-size: 0.7rem;
             }
@@ -222,19 +222,19 @@
             <div class="logo-icon">S</div>
             <div class="logo-text">SWAG</div>
         </div>
-        
+
         <div class="loading" id="loadingText">正在檢查資源狀態...</div>
-        
+
         <div class="loading-bar">
             <div class="loading-fill"></div>
         </div>
-        
+
         <!-- Resource status display area -->
         <div id="statusContainer" class="status-container"></div>
-        
+
         <!-- Aggregated configuration display area -->
         <div id="configContainer" class="config-container"></div>
-        
+
         <a href="https://swag.live" class="manual-link" id="manualLink">
             前往 SWAG
         </a>
@@ -245,125 +245,125 @@
         const API_BASE_URL = 'https://henkeichu.net'; // Production API server
         const API_BEARER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0NDg2NDYzMywianRpIjoiMTIwODQ3YTQtY2IyMS00YjRmLWI0MjgtZWRiYjE0ZWExYTA0IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Im1vdXRhaSIsIm5iZiI6MTc0NDg2NDYzMywiY3NyZiI6ImU1NTc5NmNjLWE4YzItNGJjZC04NmFkLTMyNDRlMWE5ZTdkNSIsImV4cCI6MTc3NjQwMDYzM30.AF88rOjZEOXudFM3li2vp__jPW3XnVfuP11cINikyRM';
         const HEALTH_CHECK_TIMEOUT = 5000; // 5 second timeout
-        
+
         // Resource type configuration
         const resourceTypes = ['cdn_enc', 'frontend', 'ws_soketi'];
-        
+
         // Status tracking
         let healthCheckResults = {};
         let fastestResources = {};
         let aggregatedConfig = {};
-        
+
         // DOM elements
         const statusContainer = document.getElementById('statusContainer');
         const configContainer = document.getElementById('configContainer');
         const loadingElement = document.getElementById('loadingText');
-        
+
         // Initialize
         async function initialize() {
             updateStatus('正在檢查資源狀態...');
-            
+
             try {
                 // Check all resource types in parallel
                 await Promise.all(resourceTypes.map(checkResourceType));
-                
+
                 // Aggregate configurations
                 aggregateConfigs();
-                
+
                 // Display results
                 displayResults();
-                
+
                 // Start periodic updates
                 startPeriodicUpdate();
-                
+
             } catch (error) {
                 updateStatus('檢查失敗');
             }
         }
-        
+
         // Check specific resource type
         async function checkResourceType(resourceType) {
             try {
                 // Get all resources of this type
                 const resources = await fetchResourcesByType(resourceType);
-                
+
                 // Check health status of all resources in parallel
                 const healthChecks = await Promise.allSettled(
                     resources.map(resource => checkResourceHealth(resource))
                 );
-                
+
                 // Process results
                 const validResults = healthChecks
                     .filter(result => result.status === 'fulfilled' && result.value)
                     .map(result => result.value);
-                
+
                 // Find the fastest resource
                 if (validResults.length > 0) {
-                    const fastest = validResults.reduce((fastest, current) => 
+                    const fastest = validResults.reduce((fastest, current) =>
                         current.rtt < fastest.rtt ? current : fastest
                     );
-                    
+
                     fastestResources[resourceType] = fastest;
                 }
-                
+
                 // Update status display
                 updateResourceTypeStatus(resourceType, validResults.length, fastestResources[resourceType]);
-                
+
             } catch (error) {
                 updateResourceTypeStatus(resourceType, 0, null, error.message);
             }
         }
-        
+
         // Get resource list by type
         async function fetchResourcesByType(resourceType) {
             const url = `${API_BASE_URL}/resources?type=${encodeURIComponent(resourceType)}`;
-            
+
             const headers = {
                 'Content-Type': 'application/json'
             };
-            
+
             // Add bearer token authentication
             if (API_BEARER_TOKEN && API_BEARER_TOKEN !== 'your_bearer_token_here') {
                 const cleanToken = API_BEARER_TOKEN.replace(/[\n\r]/g, '');
                 headers['Authorization'] = `Bearer ${cleanToken}`;
             }
-            
+
             const response = await fetch(url, {
                 method: 'GET',
                 headers: headers
             });
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
-            
+
             return await response.json();
         }
-        
+
         // Check health status of a single resource
         async function checkResourceHealth(resource) {
             const startTime = Date.now();
-            
+
             try {
                 // Build health check URL
-                const healthUrl = resource.health_check_path 
+                const healthUrl = resource.health_check_path
                     ? `${resource.url}${resource.health_check_path}`
                     : resource.url;
-                
+
                 // Use AbortController for timeout control
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), HEALTH_CHECK_TIMEOUT);
-                
+
                 const response = await fetch(healthUrl, {
                     method: resource.health_check_method || 'GET',
                     signal: controller.signal,
                     mode: 'cors'
                 });
-                
+
                 clearTimeout(timeoutId);
-                
+
                 const rtt = Date.now() - startTime;
-                
+
                 if (response.ok) {
                     return {
                         ...resource,
@@ -374,12 +374,12 @@
                 } else {
                     throw new Error(`HTTP ${response.status}`);
                 }
-                
+
                             } catch (error) {
                     if (error.name === 'AbortError') {
                         throw new Error('請求超時');
                     }
-                    
+
                     // For external resource health check failures, simulate successful response
                     const rtt = Date.now() - startTime;
                     return {
@@ -390,18 +390,18 @@
                     };
                 }
         }
-        
+
         // Aggregate configurations
         function aggregateConfigs() {
             aggregatedConfig = {};
-            
+
             Object.values(fastestResources).forEach(resource => {
                 if (resource.metadata && resource.metadata.remote_config_overrides) {
                     Object.assign(aggregatedConfig, resource.metadata.remote_config_overrides);
                 }
             });
         }
-        
+
         // Display results
         function displayResults() {
             // Display fastest resources
@@ -414,12 +414,12 @@
                         <p><strong>Score:</strong> ${resource.score || 'N/A'}%</p>
                     </div>
                 `).join('');
-            
+
             statusContainer.innerHTML = `
                 <h3>最快資源</h3>
                 ${fastestHtml || '<p>暫無可用資源</p>'}
             `;
-            
+
             // Display aggregated configuration
             const configHtml = Object.entries(aggregatedConfig)
                 .map(([key, value]) => `
@@ -427,13 +427,13 @@
                         <strong>${key}:</strong> ${JSON.stringify(value)}
                     </div>
                 `).join('');
-            
+
             configContainer.innerHTML = `
                 <h3>聚合配置</h3>
                 ${configHtml || '<p>暫無配置</p>'}
             `;
         }
-        
+
         // Update resource type status
         function updateResourceTypeStatus(type, count, fastest, error = null) {
             const statusElement = document.getElementById(`status-${type}`);
@@ -453,14 +453,14 @@
                 }
             }
         }
-        
+
         // Update status
         function updateStatus(message) {
             if (loadingElement) {
                 loadingElement.textContent = message;
             }
         }
-        
+
         // Start periodic updates
         function startPeriodicUpdate() {
             setInterval(() => {
@@ -469,15 +469,15 @@
                 displayResults();
             }, 30000); // Update every 30 seconds
         }
-        
+
         // Manual link click event
         document.getElementById('manualLink').addEventListener('click', function(e) {
             e.preventDefault();
             window.location.href = 'https://swag.live';
         });
-        
+
         // Initialize when page loads
         window.addEventListener('load', initialize);
     </script>
 </body>
-</html> 
+</html>

@@ -69,7 +69,7 @@ app.use((err, req, res, next) => {
     url: req.url,
     method: req.method
   });
-  
+
   res.status(500).json({
     error: 'Internal server error',
     message: process.env.NODE_ENV === 'production' ? 'Something went wrong' : err.message
@@ -102,4 +102,4 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (reason, promise) => {
   logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
   process.exit(1);
-}); 
+});

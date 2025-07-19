@@ -72,10 +72,10 @@ echo -e "${BLUE}📊 檔案大小比較${NC}"
 if [ -f "test-default.mobileconfig" ] && [ -f "test-custom.mobileconfig" ]; then
     default_size=$(stat -f%z "test-default.mobileconfig" 2>/dev/null || stat -c%s "test-default.mobileconfig" 2>/dev/null)
     custom_size=$(stat -f%z "test-custom.mobileconfig" 2>/dev/null || stat -c%s "test-custom.mobileconfig" 2>/dev/null)
-    
+
     echo -e "預設圖示 Profile: ${default_size} bytes"
     echo -e "自訂圖示 Profile: ${custom_size} bytes"
-    
+
     if [ "$default_size" -eq "$custom_size" ]; then
         echo -e "${GREEN}✅ 檔案大小一致${NC}"
     else
@@ -96,4 +96,4 @@ echo "  # 使用預設圖示"
 echo "  curl \"$BASE_URL/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com\" -o app.mobileconfig"
 echo ""
 echo "  # 使用自訂圖示"
-echo "  curl \"$BASE_URL/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com&webClipIcon=my-icon.png\" -o app.mobileconfig" 
+echo "  curl \"$BASE_URL/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com&webClipIcon=my-icon.png\" -o app.mobileconfig"

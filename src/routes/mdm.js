@@ -20,7 +20,7 @@ router.get('/test-logs', (req, res) => {
   logger.info('This is an info log message');
   logger.warn('This is a warning log message');
   logger.error('This is an error log message');
-  
+
   res.json({
     message: 'Test logs generated',
     check: 'Check the console and log files for the test messages'
@@ -31,13 +31,13 @@ router.get('/test-logs', (req, res) => {
 
 // GET /webclip - Return iOS Web Clip MDM Profile
 router.get('/webclip', (req, res) => {
-  logger.info('Web Clip MDM profile requested', { 
+  logger.info('Web Clip MDM profile requested', {
     userAgent: req.get('User-Agent'),
-    ip: req.ip 
+    ip: req.ip
   });
 
   // Get configuration from query parameters
-  const { 
+  const {
     profileName = 'SWAG Web Clip Profile',
     organization = 'SWAG',
     description = 'Web Clip Profile for SWAG web app',
@@ -71,7 +71,7 @@ router.get('/webclip', (req, res) => {
 // GET /webclip/info - Get Web Clip Profile information
 router.get('/webclip/info', (req, res) => {
   logger.info('MDM profile info requested');
-  
+
   res.json({
     description: 'Web Clip MDM Profile Generator',
     endpoint: '/mdm/webclip',
@@ -93,22 +93,22 @@ router.get('/webclip/info', (req, res) => {
 
 // GET /webclip/html - Provide redirect page
 router.get('/webclip/html', (req, res) => {
-  logger.info('Web Clip HTML page requested', { 
+  logger.info('Web Clip HTML page requested', {
     userAgent: req.get('User-Agent'),
-    ip: req.ip 
+    ip: req.ip
   });
   res.sendFile(path.join(__dirname, '../assets', 'html', 'index.html'));
 });
 
 // GET /vpn - Return iOS VPN MDM Profile (example)
 router.get('/vpn', (req, res) => {
-  logger.info('VPN MDM profile requested', { 
+  logger.info('VPN MDM profile requested', {
     userAgent: req.get('User-Agent'),
-    ip: req.ip 
+    ip: req.ip
   });
 
   // Get configuration from query parameters
-  const { 
+  const {
     profileName = 'VPN Profile',
     organization = 'Your Organization',
     description = 'VPN Profile for secure connection',
@@ -142,7 +142,7 @@ router.get('/vpn', (req, res) => {
 // GET /vpn/info - Get VPN Profile information
 router.get('/vpn/info', (req, res) => {
   logger.info('VPN profile info requested');
-  
+
   res.json({
     description: 'VPN MDM Profile Generator',
     endpoint: '/mdm/vpn',
@@ -166,7 +166,7 @@ router.get('/vpn/info', (req, res) => {
 function generateWebClipProfile({ profileName, organization, description, identifier, webClipName, webClipURL, webClipIcon }) {
   const uuid = generateUUID();
   const webClipUUID = generateUUID();
-  
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -241,15 +241,15 @@ function generateHTMLData(htmlUrl) {
     // If htmlUrl is a local file name, read the local file
     if (htmlUrl && !htmlUrl.startsWith('http')) {
       const htmlPath = path.join(__dirname, '../assets/html', htmlUrl);
-      
+
       // Check if file exists
       if (fs.existsSync(htmlPath)) {
         const htmlData = fs.readFileSync(htmlPath, 'utf8');
         const base64Data = Buffer.from(htmlData, 'utf8').toString('base64');
-        logger.info('HTML loaded from local file', { 
-          htmlPath, 
+        logger.info('HTML loaded from local file', {
+          htmlPath,
           fileSize: htmlData.length,
-          base64Length: base64Data.length 
+          base64Length: base64Data.length
         });
         return `data:text/html;base64,${base64Data}`;
       } else {
@@ -259,36 +259,36 @@ function generateHTMLData(htmlUrl) {
         if (fs.existsSync(defaultHtmlPath)) {
           const htmlData = fs.readFileSync(defaultHtmlPath, 'utf8');
           const base64Data = Buffer.from(htmlData, 'utf8').toString('base64');
-          logger.info('Using default HTML as fallback', { 
-            defaultHtmlPath, 
+          logger.info('Using default HTML as fallback', {
+            defaultHtmlPath,
             fileSize: htmlData.length,
-            base64Length: base64Data.length 
+            base64Length: base64Data.length
           });
           return `data:text/html;base64,${base64Data}`;
         }
         return '';
       }
     }
-    
+
     // If it's a URL, return directly
     if (htmlUrl && htmlUrl.startsWith('http')) {
       logger.info('HTML URL provided', { htmlUrl });
       return htmlUrl;
     }
-    
+
     // If no HTML provided, use default HTML
     const defaultHtmlPath = path.join(__dirname, '../assets/html/index.html');
     if (fs.existsSync(defaultHtmlPath)) {
       const htmlData = fs.readFileSync(defaultHtmlPath, 'utf8');
       const base64Data = Buffer.from(htmlData, 'utf8').toString('base64');
-      logger.info('Using default HTML', { 
-        defaultHtmlPath, 
+      logger.info('Using default HTML', {
+        defaultHtmlPath,
         fileSize: htmlData.length,
-        base64Length: base64Data.length 
+        base64Length: base64Data.length
       });
       return `data:text/html;base64,${base64Data}`;
     }
-    
+
     logger.warn('No HTML available, using empty URL');
     return '';
   } catch (error) {
@@ -303,15 +303,15 @@ function generateIconData(iconUrl) {
     // If iconUrl is a local file name, read the local file
     if (iconUrl && !iconUrl.startsWith('http')) {
       const iconPath = path.join(__dirname, '../assets/icons', iconUrl);
-      
+
       // Check if file exists
       if (fs.existsSync(iconPath)) {
         const iconData = fs.readFileSync(iconPath);
         const base64Data = iconData.toString('base64');
-        logger.info('Icon loaded from local file', { 
-          iconPath, 
+        logger.info('Icon loaded from local file', {
+          iconPath,
           fileSize: iconData.length,
-          base64Length: base64Data.length 
+          base64Length: base64Data.length
         });
         return base64Data;
       } else {
@@ -319,26 +319,26 @@ function generateIconData(iconUrl) {
         return '';
       }
     }
-    
+
     // If it's a URL, can add download logic (future expansion)
     if (iconUrl && iconUrl.startsWith('http')) {
       logger.info('Icon URL provided, but local file reading is preferred', { iconUrl });
       return '';
     }
-    
+
     // If no icon provided, use default icon
     const defaultIconPath = path.join(__dirname, '../assets/icons/swag-apple-icon.png');
     if (fs.existsSync(defaultIconPath)) {
       const iconData = fs.readFileSync(defaultIconPath);
       const base64Data = iconData.toString('base64');
-      logger.info('Using default icon', { 
-        defaultIconPath, 
+      logger.info('Using default icon', {
+        defaultIconPath,
         fileSize: iconData.length,
-        base64Length: base64Data.length 
+        base64Length: base64Data.length
       });
       return base64Data;
     }
-    
+
     logger.warn('No icon available, using empty icon');
     return '';
   } catch (error) {
@@ -351,7 +351,7 @@ function generateIconData(iconUrl) {
 function generateVPNProfile({ profileName, organization, description, identifier, vpnName, vpnServer, vpnType }) {
   const uuid = generateUUID();
   const vpnUUID = generateUUID();
-  
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -415,4 +415,4 @@ function generateVPNProfile({ profileName, organization, description, identifier
 </plist>`;
 }
 
-module.exports = router; 
+module.exports = router;

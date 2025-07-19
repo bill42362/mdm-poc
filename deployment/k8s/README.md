@@ -147,4 +147,4 @@ curl http://localhost:8080/health
 # 刪除所有資源
 kubectl delete -f deployment.yaml
 kubectl delete -f ingress.yaml
-``` 
+```

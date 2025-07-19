@@ -46,4 +46,4 @@ if [ $? -eq 0 ]; then
 else
     echo -e "${RED}❌ 映像推送失敗！${NC}"
     exit 1
-fi 
+fi

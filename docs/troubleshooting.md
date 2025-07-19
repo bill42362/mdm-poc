@@ -22,13 +22,13 @@
    ```bash
    # 停止所有 nodemon 進程
    pkill -f nodemon
-   
+
    # 停止所有 node 應用進程
    pkill -f "node src/app.js"
-   
+
    # 停止所有 npm run 進程
    pkill -f "npm run"
-   
+
    # 停止所有 ngrok 進程
    pkill -f ngrok
    ```
@@ -37,7 +37,7 @@
    ```bash
    # 檢查端口 3001
    lsof -i :3001
-   
+
    # 檢查端口 4040 (ngrok)
    lsof -i :4040
    ```
@@ -46,7 +46,7 @@
    ```bash
    # 找到進程 ID
    ps aux | grep nodemon
-   
+
    # 強制終止
    kill -9 <PID>
    ```
@@ -73,7 +73,7 @@
    ```bash
    # 停止所有 ngrok 進程
    pkill -f ngrok
-   
+
    # 重新啟動
    npm run ngrok:config
    ```
@@ -98,7 +98,7 @@
    ```bash
    # 編輯 .env 檔案
    echo "PORT=3002" > .env
-   
+
    # 更新 ngrok 配置
    # 編輯 ngrok.yml，將 addr 改為 3002
    ```
@@ -187,7 +187,7 @@
    ```bash
    # 清理舊日誌
    rm -f logs/*.log
-   
+
    # 或者只保留最近的日誌
    find logs/ -name "*.log" -mtime +7 -delete
    ```
@@ -266,4 +266,4 @@ cp env.example .env
    ```bash
    rm -rf node_modules package-lock.json
    npm install
-   ``` 
+   ```

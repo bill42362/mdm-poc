@@ -22,4 +22,4 @@ spec:
           service:
             name: mdm-profile-service
             port:
-              number: 80 
+              number: 80

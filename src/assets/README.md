@@ -116,4 +116,4 @@ pngquant --quality=65-80 app-icon.png
 - 支援更多圖示格式 (SVG, WebP)
 - 自動圖示生成功能
 - 圖示預覽功能
-- 圖示管理介面 
+- 圖示管理介面

@@ -30,7 +30,7 @@
    ```bash
    # 開發模式 (自動重啟)
    npm run dev
-   
+
    # 生產模式
    npm start
    ```
@@ -106,7 +106,7 @@ curl http://localhost:3001/mdm/vpn/info
 
 ### 日誌級別
 - `error` - 錯誤訊息
-- `warn` - 警告訊息  
+- `warn` - 警告訊息
 - `info` - 一般資訊
 - `debug` - 除錯訊息
 
@@ -167,10 +167,10 @@ router.get('/mdm/vpn-profile', (req, res) => {
 ```javascript
 const { logger } = require('./logger');
 
-logger.info('MDM profile generated', { 
+logger.info('MDM profile generated', {
   profileType: 'webclip',
   userAgent: req.get('User-Agent'),
-  ip: req.ip 
+  ip: req.ip
 });
 ```
 
@@ -316,4 +316,4 @@ A: 目前版本使用預設圖示，未來版本將支援自訂圖示功能。
 
 ## 授權
 
-MIT License 
+MIT License

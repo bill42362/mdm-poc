@@ -127,7 +127,7 @@ curl "https://abc123.ngrok.io/mdm/vpn?vpnName=My%20VPN&vpnServer=vpn.mycompany.c
    ```bash
    # 檢查 auth token
    ngrok authtoken YOUR_TOKEN
-   
+
    # 檢查配置檔案
    ngrok config check
    ```
@@ -136,7 +136,7 @@ curl "https://abc123.ngrok.io/mdm/vpn?vpnName=My%20VPN&vpnServer=vpn.mycompany.c
    ```bash
    # 檢查端口 3000 是否被佔用
    lsof -i :3000
-   
+
    # 殺死佔用端口的程序
    kill -9 PID
    ```
@@ -144,4 +144,4 @@ curl "https://abc123.ngrok.io/mdm/vpn?vpnName=My%20VPN&vpnServer=vpn.mycompany.c
 3. **iOS 裝置無法訪問**
    - 確保使用 HTTPS URL
    - 檢查防火牆設定
-   - 嘗試使用不同的 ngrok 區域 
+   - 嘗試使用不同的 ngrok 區域

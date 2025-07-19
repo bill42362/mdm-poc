@@ -44,4 +44,4 @@ volumes:
 
 networks:
   mdm-poc-network:
-    driver: bridge 
+    driver: bridge

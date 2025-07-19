@@ -47,12 +47,12 @@ check_directory() {
 list_icons() {
     echo -e "${BLUE}📋 圖示列表:${NC}"
     echo ""
-    
+
     if [ -z "$(ls -A $ICONS_DIR/*.png 2>/dev/null)" ]; then
         echo -e "${YELLOW}⚠️  沒有找到 PNG 圖示檔案${NC}"
         return
     fi
-    
+
     for icon in $ICONS_DIR/*.png; do
         if [ -f "$icon" ]; then
             filename=$(basename "$icon")
@@ -67,32 +67,32 @@ list_icons() {
 add_icon() {
     local source_file="$1"
     local icon_name="$2"
-    
+
     if [ -z "$source_file" ]; then
         echo -e "${RED}❌ 請指定來源檔案${NC}"
         return 1
     fi
-    
+
     if [ ! -f "$source_file" ]; then
         echo -e "${RED}❌ 來源檔案不存在: $source_file${NC}"
         return 1
     fi
-    
+
     # 如果沒有指定名稱，使用檔案名稱（不含副檔名）
     if [ -z "$icon_name" ]; then
         icon_name=$(basename "$source_file" | sed 's/\.[^.]*$//')
     fi
-    
+
     local target_file="$ICONS_DIR/$icon_name.png"
-    
+
     echo -e "${BLUE}📥 新增圖示: $icon_name${NC}"
-    
+
     # 複製檔案
     cp "$source_file" "$target_file"
-    
+
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✅ 圖示已新增: $target_file${NC}"
-        
+
         # 顯示檔案資訊
         size=$(stat -f%z "$target_file" 2>/dev/null || stat -c%s "$target_file" 2>/dev/null)
         size_kb=$((size / 1024))
@@ -106,22 +106,22 @@ add_icon() {
 # 移除圖示
 remove_icon() {
     local icon_name="$1"
-    
+
     if [ -z "$icon_name" ]; then
         echo -e "${RED}❌ 請指定要移除的圖示名稱${NC}"
         return 1
     fi
-    
+
     local icon_file="$ICONS_DIR/$icon_name.png"
-    
+
     if [ ! -f "$icon_file" ]; then
         echo -e "${RED}❌ 圖示不存在: $icon_name${NC}"
         return 1
     fi
-    
+
     echo -e "${YELLOW}🗑️  移除圖示: $icon_name${NC}"
     rm "$icon_file"
-    
+
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✅ 圖示已移除${NC}"
     else
@@ -133,19 +133,19 @@ remove_icon() {
 # 調整圖示尺寸
 resize_icon() {
     local icon_file="$1"
-    
+
     if [ -z "$icon_file" ]; then
         echo -e "${RED}❌ 請指定圖示檔案${NC}"
         return 1
     fi
-    
+
     if [ ! -f "$icon_file" ]; then
         echo -e "${RED}❌ 檔案不存在: $icon_file${NC}"
         return 1
     fi
-    
+
     echo -e "${BLUE}📏 調整圖示尺寸: $icon_file${NC}"
-    
+
     # 檢查是否有 ImageMagick
     if command -v convert >/dev/null 2>&1; then
         convert "$icon_file" -resize 180x180 "$icon_file"
@@ -162,19 +162,19 @@ resize_icon() {
 # 優化圖示檔案
 optimize_icon() {
     local icon_file="$1"
-    
+
     if [ -z "$icon_file" ]; then
         echo -e "${RED}❌ 請指定圖示檔案${NC}"
         return 1
     fi
-    
+
     if [ ! -f "$icon_file" ]; then
         echo -e "${RED}❌ 檔案不存在: $icon_file${NC}"
         return 1
     fi
-    
+
     echo -e "${BLUE}⚡ 優化圖示檔案: $icon_file${NC}"
-    
+
     # 檢查是否有 pngquant
     if command -v pngquant >/dev/null 2>&1; then
         pngquant --quality=65-80 --force "$icon_file"
@@ -188,12 +188,12 @@ optimize_icon() {
 # 備份圖示
 backup_icons() {
     local backup_dir="backups/icons_$(date +%Y%m%d_%H%M%S)"
-    
+
     echo -e "${BLUE}💾 備份圖示檔案${NC}"
-    
+
     mkdir -p "$backup_dir"
     cp -r "$ICONS_DIR"/* "$backup_dir/"
-    
+
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✅ 圖示已備份到: $backup_dir${NC}"
     else
@@ -205,21 +205,21 @@ backup_icons() {
 # 還原備份
 restore_backup() {
     local backup_file="$1"
-    
+
     if [ -z "$backup_file" ]; then
         echo -e "${RED}❌ 請指定備份檔案${NC}"
         return 1
     fi
-    
+
     if [ ! -d "$backup_file" ]; then
         echo -e "${RED}❌ 備份目錄不存在: $backup_file${NC}"
         return 1
     fi
-    
+
     echo -e "${YELLOW}🔄 還原圖示備份${NC}"
-    
+
     cp -r "$backup_file"/* "$ICONS_DIR/"
-    
+
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✅ 圖示已還原${NC}"
     else
@@ -231,7 +231,7 @@ restore_backup() {
 # 主程式
 main() {
     check_directory
-    
+
     case "$1" in
         "list")
             list_icons
@@ -267,4 +267,4 @@ main() {
 }
 
 # 執行主程式
-main "$@" 
+main "$@"

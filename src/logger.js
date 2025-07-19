@@ -17,15 +17,15 @@ const logFormat = winston.format.combine(
   winston.format.json(),
   winston.format.printf(({ timestamp, level, message, stack, ...meta }) => {
     let log = `${timestamp} [${level.toUpperCase()}]: ${message}`;
-    
+
     if (stack) {
       log += `\n${stack}`;
     }
-    
+
     if (Object.keys(meta).length > 0) {
       log += `\n${JSON.stringify(meta, null, 2)}`;
     }
-    
+
     return log;
   })
 );
@@ -64,7 +64,7 @@ if (process.env.NODE_ENV !== 'production') {
 // Create an Express middleware to log HTTP requests
 const requestLogger = (req, res, next) => {
   const start = Date.now();
-  
+
   res.on('finish', () => {
     const duration = Date.now() - start;
     const logData = {
@@ -75,18 +75,18 @@ const requestLogger = (req, res, next) => {
       userAgent: req.get('User-Agent'),
       ip: req.ip || req.connection.remoteAddress,
     };
-    
+
     if (res.statusCode >= 400) {
       logger.error('HTTP Request Error', logData);
     } else {
       logger.info('HTTP Request', logData);
     }
   });
-  
+
   next();
 };
 
 module.exports = {
   logger,
   requestLogger
-}; 
+};

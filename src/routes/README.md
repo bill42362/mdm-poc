@@ -68,10 +68,10 @@ app.use('/mdm', vpnProfileRoutes);
 ### 1. 日誌記錄
 ```javascript
 router.get('/endpoint', (req, res) => {
-  logger.info('Endpoint accessed', { 
-    method: req.method, 
+  logger.info('Endpoint accessed', {
+    method: req.method,
     url: req.url,
-    query: req.query 
+    query: req.query
   });
   // ... 處理邏輯
 });
@@ -94,14 +94,14 @@ router.post('/endpoint', (req, res) => {
 ```javascript
 router.post('/mdm/profile', (req, res) => {
   const { profileName, organization, identifier } = req.body;
-  
+
   if (!profileName || !organization || !identifier) {
     logger.warn('Missing required fields for MDM profile');
     return res.status(400).json({
       error: 'profileName, organization, and identifier are required'
     });
   }
-  
+
   // 處理邏輯
 });
 ```
@@ -131,4 +131,4 @@ curl "http://localhost:3001/mdm/webclip?webClipName=My%20App&webClipURL=https://
 
 # 生成 VPN Profile
 curl "http://localhost:3001/mdm/vpn?vpnName=My%20VPN&vpnServer=vpn.mycompany.com&organization=My%20Company" -o vpn.mobileconfig
-``` 
+```

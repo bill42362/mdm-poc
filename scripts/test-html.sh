@@ -65,16 +65,16 @@ html_file="src/assets/html/index.html"
 if [ -f "$html_file" ]; then
     file_size=$(stat -f%z "$html_file" 2>/dev/null || stat -c%s "$html_file" 2>/dev/null)
     echo -e "${GREEN}✅ HTML 檔案存在: $html_file (${file_size} bytes)${NC}"
-    
+
     # 檢查關鍵元素
     if grep -q "SWAG" "$html_file"; then
         echo -e "${GREEN}✅ 包含 SWAG 品牌元素${NC}"
     fi
-    
+
     if grep -q "window.location.replace" "$html_file"; then
         echo -e "${GREEN}✅ 包含 JavaScript 導向功能${NC}"
     fi
-    
+
     if grep -q "https://swag.live" "$html_file"; then
         echo -e "${GREEN}✅ 包含正確的目標 URL${NC}"
     fi
@@ -105,4 +105,4 @@ echo "  • 響應式設計，支援各種裝置"
 echo "  • 美觀的載入動畫和漸層背景"
 echo ""
 
-echo -e "${GREEN}✅ 測試完成${NC}" 
+echo -e "${GREEN}✅ 測試完成${NC}"

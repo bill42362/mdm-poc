@@ -65,16 +65,16 @@ html_file="src/assets/html/index.html"
 if [ -f "$html_file" ]; then
     file_size=$(stat -f%z "$html_file" 2>/dev/null || stat -c%s "$html_file" 2>/dev/null)
     echo -e "${GREEN}✅ HTML 檔案存在: $html_file (${file_size} bytes)${NC}"
-    
+
     # 檢查關鍵元素
     if grep -q "SWAG" "$html_file"; then
         echo -e "${GREEN}✅ 包含 SWAG 品牌元素${NC}"
     fi
-    
+
     if grep -q "window.location.replace" "$html_file"; then
         echo -e "${GREEN}✅ 包含 JavaScript 導向功能${NC}"
     fi
-    
+
     if grep -q "https://swag.live" "$html_file"; then
         echo -e "${GREEN}✅ 包含正確的目標 URL${NC}"
     fi
@@ -96,17 +96,17 @@ if [ -f "test-default.mobileconfig" ] && [ -f "test-external.mobileconfig" ] && 
     default_size=$(stat -f%z "test-default.mobileconfig" 2>/dev/null || stat -c%s "test-default.mobileconfig" 2>/dev/null)
     external_size=$(stat -f%z "test-external.mobileconfig" 2>/dev/null || stat -c%s "test-external.mobileconfig" 2>/dev/null)
     local_size=$(stat -f%z "test-local.mobileconfig" 2>/dev/null || stat -c%s "test-local.mobileconfig" 2>/dev/null)
-    
+
     echo -e "預設 HTML Profile: ${default_size} bytes"
     echo -e "外部 URL Profile: ${external_size} bytes"
     echo -e "本地 HTML Profile: ${local_size} bytes"
-    
+
     if [ "$default_size" -eq "$local_size" ]; then
         echo -e "${GREEN}✅ 預設和本地 HTML 檔案大小一致${NC}"
     else
         echo -e "${YELLOW}⚠️  檔案大小不同 (預期行為)${NC}"
     fi
-    
+
     if [ "$default_size" -gt "$external_size" ]; then
         echo -e "${GREEN}✅ 預設 HTML 檔案大於外部 URL (包含 base64 資料)${NC}"
     else
@@ -131,4 +131,4 @@ echo ""
 # 清理測試檔案
 echo -e "${BLUE}🧹 清理測試檔案${NC}"
 rm -f test-*.mobileconfig
-echo -e "${GREEN}✅ 測試完成${NC}" 
+echo -e "${GREEN}✅ 測試完成${NC}"

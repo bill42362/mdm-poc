@@ -246,6 +246,7 @@
         const API_BEARER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0NDg2NDYzMywianRpIjoiMTIwODQ3YTQtY2IyMS00YjRmLWI0MjgtZWRiYjE0ZWExYTA0IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Im1vdXRhaSIsIm5iZiI6MTc0NDg2NDYzMywiY3NyZiI6ImU1NTc5NmNjLWE4YzItNGJjZC04NmFkLTMyNDRlMWE5ZTdkNSIsImV4cCI6MTc3NjQwMDYzM30.AF88rOjZEOXudFM3li2vp__jPW3XnVfuP11cINikyRM';
         const HEALTH_CHECK_TIMEOUT = 5000; // 5 second timeout
         const CONFIG_SEPARATOR = ':::'; // Separator for config key-value pairs
+        const CONFIG_PARAM_NAME = 'config'; // Parameter name for config in URL
         
         // Domain rotation tracking
         let currentDomainIndex = 0;
@@ -519,7 +520,7 @@
                         .join('&');
                     
                     // Append the config parameter using URLSearchParams
-                    url.searchParams.append('config', configParams);
+                    url.searchParams.append(CONFIG_PARAM_NAME, configParams);
                 }
                 
                 return url.href;
@@ -586,6 +587,7 @@
                 <div class="resource-item">
                     <h4>生成的配置 URL</h4>
                     <p><strong>URL:</strong> <a href="${configUrl}" target="_blank" style="color: #00d2be; word-break: break-all;">${configUrl}</a></p>
+                    <p><strong>參數名稱:</strong> ${CONFIG_PARAM_NAME}</p>
                     <p><strong>分隔符:</strong> ${CONFIG_SEPARATOR}</p>
                     <button onclick="copyUrlToClipboard('${configUrl}')" style="background: #00d2be; color: #191919; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; margin-top: 0.5rem;">
                         複製 URL

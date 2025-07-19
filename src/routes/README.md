@@ -6,9 +6,7 @@
 
 ```
 src/routes/
-├── api.js          # 主要 API 路由
-├── auth.js         # 認證相關路由 (可選)
-├── users.js        # 使用者相關路由 (可選)
+├── api.js          # MDM Profile API 路由
 └── README.md       # 本說明檔案
 ```
 
@@ -38,23 +36,21 @@ router.post('/your-endpoint', (req, res) => {
 });
 ```
 
-### 2. 建立新的路由檔案
+### 2. 建立新的 MDM Profile 類型
 
-如果 endpoint 很多，可以建立獨立的檔案：
+如果需要支援更多 MDM Profile 類型，可以建立獨立的檔案：
 
 ```javascript
-// src/routes/products.js
+// src/routes/vpn-profile.js
 const express = require('express');
 const { logger } = require('../logger');
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  // GET /api/products
-});
-
-router.post('/', (req, res) => {
-  // POST /api/products
+router.get('/vpn-profile', (req, res) => {
+  // GET /api/mdm/vpn-profile
+  logger.info('VPN profile requested');
+  // 生成 VPN Profile
 });
 
 module.exports = router;
@@ -63,8 +59,8 @@ module.exports = router;
 然後在 `src/app.js` 中註冊：
 
 ```javascript
-const productsRoutes = require('./routes/products');
-app.use('/api/products', productsRoutes);
+const vpnProfileRoutes = require('./routes/vpn-profile');
+app.use('/api/mdm', vpnProfileRoutes);
 ```
 
 ## 最佳實踐
@@ -96,13 +92,13 @@ router.post('/endpoint', (req, res) => {
 
 ### 3. 資料驗證
 ```javascript
-router.post('/users', (req, res) => {
-  const { name, email } = req.body;
+router.post('/mdm/profile', (req, res) => {
+  const { profileName, organization, identifier } = req.body;
   
-  if (!name || !email) {
-    logger.warn('Invalid data provided');
+  if (!profileName || !organization || !identifier) {
+    logger.warn('Missing required fields for MDM profile');
     return res.status(400).json({
-      error: 'Name and email are required'
+      error: 'profileName, organization, and identifier are required'
     });
   }
   
@@ -121,25 +117,9 @@ router.post('/users', (req, res) => {
 - `GET /api/mdm/profile` - 生成 iOS Web Clip MDM Profile
 - `GET /api/mdm/profile/info` - 取得 MDM Profile 資訊
 
-### 使用者端點 (範例)
-- `GET /api/users` - 取得所有使用者
-- `POST /api/users` - 建立新使用者
-- `GET /api/users/:id` - 取得特定使用者
-
 ## 測試 Endpoint
 
 ```bash
-# 測試 GET 端點
-curl http://localhost:3000/api/users
-
-# 測試 POST 端點
-curl -X POST http://localhost:3000/api/users \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Test","email":"test@example.com"}'
-
-# 測試參數端點
-curl http://localhost:3000/api/users/1
-
 # 測試 MDM Profile 端點
 curl http://localhost:3000/api/mdm/profile/info
 

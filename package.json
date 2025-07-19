@@ -1,14 +1,14 @@
 {
   "name": "mdm-poc",
   "version": "1.0.0",
-  "description": "MDM POC Express Server with logging",
+  "description": "iOS MDM Profile Generator - Web Clip Profile Server",
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["express", "server", "logging", "mdm"],
+  "keywords": ["mdm", "ios", "profile", "webclip", "mobileconfig", "express"],
   "author": "",
   "license": "MIT",
   "dependencies": {

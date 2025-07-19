@@ -1,6 +1,6 @@
-name: mdm-poc
+name: ios-mdm-profile-generator
 services:
-- name: mdm-poc-server
+- name: mdm-profile-server
   source_dir: /
   github:
     repo: your-username/mdm-poc

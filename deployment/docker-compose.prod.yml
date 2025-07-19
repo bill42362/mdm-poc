@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  mdm-poc:
-    image: registry.digitalocean.com/your-registry/mdm-poc:latest
-    container_name: mdm-poc-server
+  mdm-profile-generator:
+    image: registry.digitalocean.com/your-registry/ios-mdm-profile-generator:latest
+    container_name: mdm-profile-server
     ports:
       - "3000:3000"
     environment:
@@ -33,7 +33,7 @@ services:
       - ./deployment/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./deployment/ssl:/etc/nginx/ssl:ro
     depends_on:
-      - mdm-poc
+      - mdm-profile-generator
     restart: unless-stopped
     networks:
       - mdm-poc-network

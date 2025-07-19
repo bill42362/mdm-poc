@@ -7,7 +7,7 @@ set -e
 
 # 預設值
 REGISTRY=${1:-"registry.digitalocean.com"}
-IMAGE_NAME=${2:-"your-registry/mdm-poc"}
+IMAGE_NAME=${2:-"your-registry/ios-mdm-profile-generator"}
 TAG=${3:-"latest"}
 
 # 顏色定義

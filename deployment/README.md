@@ -1,6 +1,6 @@
 # Digital Ocean 部署指南
 
-這個目錄包含將 MDM POC 部署到 Digital Ocean 的相關配置檔案。
+這個目錄包含將 iOS MDM Profile Generator 部署到 Digital Ocean 的相關配置檔案。
 
 ## 部署選項
 

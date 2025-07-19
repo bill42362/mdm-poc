@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mdm-poc
+  name: ios-mdm-profile-generator
   labels:
-    app: mdm-poc
+    app: ios-mdm-profile-generator
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: mdm-poc
+      app: ios-mdm-profile-generator
   template:
     metadata:
       labels:
-        app: mdm-poc
+        app: ios-mdm-profile-generator
     spec:
       containers:
-      - name: mdm-poc
-        image: registry.digitalocean.com/your-registry/mdm-poc:latest
+              - name: mdm-profile-generator
+        image: registry.digitalocean.com/your-registry/ios-mdm-profile-generator:latest
         ports:
         - containerPort: 3000
         env:
@@ -57,10 +57,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: mdm-poc-service
+  name: mdm-profile-service
 spec:
   selector:
-    app: mdm-poc
+    app: ios-mdm-profile-generator
   ports:
   - protocol: TCP
     port: 80

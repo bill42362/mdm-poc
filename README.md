@@ -1,16 +1,17 @@
 # MDM POC Express Server
 
-這是一個具有強大日誌功能的 Node.js Express 伺服器專案。
+這是一個專門用於生成 iOS MDM Profile 的 Node.js Express 伺服器專案，特別專注於 Web Clip 配置檔案的生成和管理。
 
 ## 功能特色
 
-- 🚀 **Express.js** - 快速、靈活的 Node.js Web 框架
-- 📝 **Winston 日誌系統** - 多級別日誌記錄，支援檔案和控制台輸出
+- 📱 **iOS MDM Profile 生成** - 專門生成 iOS 裝置管理配置檔案
+- 🌐 **Web Clip 支援** - 快速建立主畫面 Web 應用程式捷徑
+- 📝 **Winston 日誌系統** - 完整的 MDM Profile 請求記錄
 - 🔒 **安全性** - 使用 Helmet 增強安全性
 - 🌐 **CORS 支援** - 跨域請求處理
-- 📊 **HTTP 請求日誌** - 詳細的請求記錄
 - 🏥 **健康檢查** - 系統狀態監控端點
 - ⚡ **開發模式** - 使用 Nodemon 自動重啟
+- 🐳 **Docker 支援** - 完整的容器化部署方案
 
 ## 安裝與設定
 
@@ -34,11 +35,54 @@
    npm start
    ```
 
-## API 端點
+## MDM Profile API 端點
 
+### 主要功能
+- `GET /api/mdm/profile` - 生成 iOS Web Clip MDM Profile
+- `GET /api/mdm/profile/info` - 取得 MDM Profile 生成資訊
+
+### 系統端點
 - `GET /health` - 健康檢查
 - `GET /api/status` - 伺服器狀態
 - `GET /api/test-logs` - 測試日誌功能
+
+## MDM Profile 使用指南
+
+### 快速開始
+
+#### 1. 生成基本 Web Clip Profile
+```bash
+curl "http://localhost:3000/api/mdm/profile?webClipName=My%20App&webClipURL=https://myapp.com" -o myapp.mobileconfig
+```
+
+#### 2. 生成完整配置的 Profile
+```bash
+curl "http://localhost:3000/api/mdm/profile?webClipName=My%20App&webClipURL=https://myapp.com&organization=My%20Company&description=Quick%20access%20to%20my%20web%20app" -o myapp.mobileconfig
+```
+
+#### 3. 查看可用的參數
+```bash
+curl http://localhost:3000/api/mdm/profile/info
+```
+
+### 參數說明
+
+| 參數 | 類型 | 必填 | 說明 |
+|------|------|------|------|
+| `webClipName` | string | 是 | Web Clip 在主畫面上顯示的名稱 |
+| `webClipURL` | string | 是 | 要開啟的網頁 URL |
+| `organization` | string | 否 | 組織名稱 |
+| `profileName` | string | 否 | Profile 顯示名稱 |
+| `description` | string | 否 | Profile 描述 |
+| `identifier` | string | 否 | Profile 識別碼 |
+| `webClipIcon` | string | 否 | 圖示 URL |
+
+### 安裝到 iOS 裝置
+
+1. **傳送 Profile 檔案**：將生成的 `.mobileconfig` 檔案傳送到 iOS 裝置
+2. **點擊安裝**：在 iOS 裝置上點擊檔案開始安裝
+3. **確認安裝**：在設定 > 一般 > VPN與裝置管理 中確認安裝
+4. **使用 Web Clip**：在主畫面上會出現新的圖示，點擊即可開啟網頁
 
 ## 日誌系統
 
@@ -62,22 +106,38 @@
 mdm-poc/
 ├── src/
 │   ├── app.js          # 主應用程式
-│   └── logger.js       # 日誌模組
-├── logs/               # 日誌檔案目錄
-├── package.json        # 專案配置
-├── env.example         # 環境變數範例
-└── README.md          # 專案說明
+│   ├── logger.js       # 日誌模組
+│   └── routes/
+│       ├── api.js      # MDM Profile API 路由
+│       └── README.md   # 路由說明文件
+├── deployment/         # 部署配置檔案
+│   ├── docker-compose.prod.yml
+│   ├── digitalocean-app.yaml
+│   ├── nginx.conf
+│   └── k8s/           # Kubernetes 配置
+├── logs/              # 日誌檔案目錄
+├── package.json       # 專案配置
+├── env.example        # 環境變數範例
+├── Dockerfile         # Docker 映像配置
+└── README.md         # 專案說明
 ```
 
 ## 開發
 
-### 新增路由
-在 `src/app.js` 中新增你的路由：
+### 新增 MDM Profile 類型
+在 `src/routes/api.js` 中新增你的 MDM Profile 類型：
 
 ```javascript
-app.get('/api/your-endpoint', (req, res) => {
-  logger.info('Your endpoint accessed');
-  res.json({ message: 'Your response' });
+// 新增 VPN Profile
+router.get('/mdm/vpn-profile', (req, res) => {
+  logger.info('VPN profile requested');
+  // 生成 VPN Profile XML
+  const vpnProfile = generateVPNProfile(req.query);
+  res.set({
+    'Content-Type': 'application/x-apple-aspen-config',
+    'Content-Disposition': 'attachment; filename="vpn.mobileconfig"'
+  });
+  res.send(vpnProfile);
 });
 ```
 
@@ -85,14 +145,26 @@ app.get('/api/your-endpoint', (req, res) => {
 ```javascript
 const { logger } = require('./logger');
 
-logger.info('Info message');
-logger.warn('Warning message');
-logger.error('Error message', { additional: 'data' });
+logger.info('MDM profile generated', { 
+  profileType: 'webclip',
+  userAgent: req.get('User-Agent'),
+  ip: req.ip 
+});
 ```
 
 ## 部署
 
-### 本地 Docker 測試
+### 本地測試
+
+```bash
+# 啟動開發伺服器
+npm run dev
+
+# 測試 MDM Profile 生成
+curl "http://localhost:3000/api/mdm/profile?webClipName=Test%20App&webClipURL=https://example.com" -o test.mobileconfig
+```
+
+### Docker 部署
 
 ```bash
 # 建立 Docker 映像
@@ -101,8 +173,8 @@ docker build -t mdm-poc .
 # 使用 Docker Compose 運行
 docker-compose up -d
 
-# 測試應用程式
-curl http://localhost:3000/health
+# 測試 MDM Profile 生成
+curl "http://localhost:3000/api/mdm/profile?webClipName=Test%20App&webClipURL=https://example.com" -o test.mobileconfig
 ```
 
 ### Digital Ocean 部署
@@ -128,7 +200,33 @@ doctl registry login
 docker-compose -f deployment/docker-compose.prod.yml up -d
 ```
 
+### 生產環境使用
+
+部署完成後，你可以透過以下方式生成 MDM Profile：
+
+```bash
+# 基本 Web Clip Profile
+curl "https://your-domain.com/api/mdm/profile?webClipName=My%20App&webClipURL=https://myapp.com" -o myapp.mobileconfig
+
+# 完整配置 Profile
+curl "https://your-domain.com/api/mdm/profile?webClipName=My%20App&webClipURL=https://myapp.com&organization=My%20Company&description=Quick%20access%20to%20my%20web%20app" -o myapp.mobileconfig
+```
+
 詳細部署說明請參考 `deployment/README.md`
+
+## 常見問題
+
+### Q: 什麼是 Web Clip？
+A: Web Clip 是 iOS 的一項功能，可以將網頁應用程式以圖示形式安裝到主畫面上，讓使用者可以像使用原生 App 一樣快速存取網頁服務。
+
+### Q: 生成的 Profile 檔案可以安裝到哪些裝置？
+A: 生成的 `.mobileconfig` 檔案可以安裝到所有支援 iOS 的裝置，包括 iPhone、iPad 和 iPod touch。
+
+### Q: 如何移除已安裝的 Profile？
+A: 在 iOS 裝置上，前往 設定 > 一般 > VPN與裝置管理，找到已安裝的 Profile 並點擊「移除描述檔」。
+
+### Q: 可以自訂 Web Clip 的圖示嗎？
+A: 目前版本使用預設圖示，未來版本將支援自訂圖示功能。
 
 ## 授權
 

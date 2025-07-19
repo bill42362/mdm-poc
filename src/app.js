@@ -44,9 +44,9 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API 路由
-const apiRoutes = require('./routes/api');
-app.use('/api', apiRoutes);
+// MDM 路由
+const mdmRoutes = require('./routes/mdm');
+app.use('/mdm', mdmRoutes);
 
 // 錯誤處理中間件
 app.use((req, res, next) => {

@@ -27,8 +27,8 @@ router.get('/test-logs', (req, res) => {
 
 
 
-// GET /api/mdm/profile - 回傳 iOS Web Clip MDM Profile
-router.get('/mdm/profile', (req, res) => {
+// GET /webclip - 回傳 iOS Web Clip MDM Profile
+router.get('/webclip', (req, res) => {
   logger.info('Web Clip MDM profile requested', { 
     userAgent: req.get('User-Agent'),
     ip: req.ip 
@@ -66,13 +66,13 @@ router.get('/mdm/profile', (req, res) => {
   res.send(mdmProfile);
 });
 
-// GET /api/mdm/profile/info - 取得 MDM Profile 資訊
-router.get('/mdm/profile/info', (req, res) => {
+// GET /webclip/info - 取得 Web Clip Profile 資訊
+router.get('/webclip/info', (req, res) => {
   logger.info('MDM profile info requested');
   
   res.json({
     description: 'Web Clip MDM Profile Generator',
-    endpoint: '/api/mdm/profile',
+    endpoint: '/mdm/webclip',
     method: 'GET',
     parameters: {
       profileName: 'string (optional) - Profile display name',
@@ -84,7 +84,69 @@ router.get('/mdm/profile/info', (req, res) => {
       webClipIcon: 'string (optional) - Icon URL for web clip'
     },
     example: {
-      url: '/api/mdm/profile?webClipName=My%20App&webClipURL=https://myapp.com&organization=My%20Company'
+      url: '/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com&organization=My%20Company'
+    }
+  });
+});
+
+// GET /vpn - 回傳 iOS VPN MDM Profile (範例)
+router.get('/vpn', (req, res) => {
+  logger.info('VPN MDM profile requested', { 
+    userAgent: req.get('User-Agent'),
+    ip: req.ip 
+  });
+
+  // 從查詢參數獲取配置
+  const { 
+    profileName = 'VPN Profile',
+    organization = 'Your Organization',
+    description = 'VPN Profile for secure connection',
+    identifier = 'com.yourcompany.vpn.profile',
+    vpnName = 'My VPN',
+    vpnServer = 'vpn.example.com',
+    vpnType = 'IKEv2'
+  } = req.query;
+
+  // 生成 VPN MDM Profile XML (簡化版本)
+  const vpnProfile = generateVPNProfile({
+    profileName,
+    organization,
+    description,
+    identifier,
+    vpnName,
+    vpnServer,
+    vpnType
+  });
+
+  // 設定回應標頭
+  res.set({
+    'Content-Type': 'application/x-apple-aspen-config',
+    'Content-Disposition': `attachment; filename="${profileName}.mobileconfig"`,
+    'Cache-Control': 'no-cache'
+  });
+
+  res.send(vpnProfile);
+});
+
+// GET /vpn/info - 取得 VPN Profile 資訊
+router.get('/vpn/info', (req, res) => {
+  logger.info('VPN profile info requested');
+  
+  res.json({
+    description: 'VPN MDM Profile Generator',
+    endpoint: '/mdm/vpn',
+    method: 'GET',
+    parameters: {
+      profileName: 'string (optional) - Profile display name',
+      organization: 'string (optional) - Organization name',
+      description: 'string (optional) - Profile description',
+      identifier: 'string (optional) - Profile identifier',
+      vpnName: 'string (optional) - VPN connection name',
+      vpnServer: 'string (optional) - VPN server address',
+      vpnType: 'string (optional) - VPN type (IKEv2, L2TP, etc.)'
+    },
+    example: {
+      url: '/mdm/vpn?vpnName=My%20VPN&vpnServer=vpn.mycompany.com&organization=My%20Company'
     }
   });
 });
@@ -163,6 +225,74 @@ function generateIconData(iconUrl) {
   // 這裡可以加入實際的圖示下載和轉換邏輯
   // 目前返回空字串，讓系統使用預設圖示
   return '';
+}
+
+// 輔助函數：生成 VPN MDM Profile
+function generateVPNProfile({ profileName, organization, description, identifier, vpnName, vpnServer, vpnType }) {
+  const uuid = generateUUID();
+  const vpnUUID = generateUUID();
+  
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>PayloadType</key>
+            <string>com.apple.vpn.managed</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>PayloadIdentifier</key>
+            <string>${identifier}.vpn</string>
+            <key>PayloadUUID</key>
+            <string>${vpnUUID}</string>
+            <key>PayloadDisplayName</key>
+            <string>${vpnName}</string>
+            <key>PayloadDescription</key>
+            <string>VPN Configuration for ${vpnName}</string>
+            <key>PayloadOrganization</key>
+            <string>${organization}</string>
+            <key>UserDefinedName</key>
+            <string>${vpnName}</string>
+            <key>VPNType</key>
+            <string>${vpnType}</string>
+            <key>VendorConfig</key>
+            <dict>
+                <key>Server</key>
+                <string>${vpnServer}</string>
+            </dict>
+            <key>OnDemandEnabled</key>
+            <integer>0</integer>
+            <key>OnDemandRules</key>
+            <array>
+                <dict>
+                    <key>Action</key>
+                    <string>Disconnect</string>
+                </dict>
+            </array>
+        </dict>
+    </array>
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+    <key>PayloadIdentifier</key>
+    <string>${identifier}</string>
+    <key>PayloadUUID</key>
+    <string>${uuid}</string>
+    <key>PayloadDisplayName</key>
+    <string>${profileName}</string>
+    <key>PayloadDescription</key>
+    <string>${description}</string>
+    <key>PayloadOrganization</key>
+    <string>${organization}</string>
+    <key>PayloadExpirationDate</key>
+    <date>2026-12-31T23:59:59Z</date>
+</dict>
+</plist>`;
 }
 
 module.exports = router; 

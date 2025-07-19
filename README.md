@@ -38,8 +38,10 @@
 ## MDM Profile API 端點
 
 ### 主要功能
-- `GET /api/mdm/profile` - 生成 iOS Web Clip MDM Profile
-- `GET /api/mdm/profile/info` - 取得 MDM Profile 生成資訊
+- `GET /mdm/webclip` - 生成 iOS Web Clip MDM Profile
+- `GET /mdm/webclip/info` - 取得 Web Clip Profile 資訊
+- `GET /mdm/vpn` - 生成 iOS VPN MDM Profile
+- `GET /mdm/vpn/info` - 取得 VPN Profile 資訊
 
 ### 系統端點
 - `GET /health` - 健康檢查
@@ -52,17 +54,23 @@
 
 #### 1. 生成基本 Web Clip Profile
 ```bash
-curl "http://localhost:3000/api/mdm/profile?webClipName=My%20App&webClipURL=https://myapp.com" -o myapp.mobileconfig
+curl "http://localhost:3000/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com" -o myapp.mobileconfig
 ```
 
 #### 2. 生成完整配置的 Profile
 ```bash
-curl "http://localhost:3000/api/mdm/profile?webClipName=My%20App&webClipURL=https://myapp.com&organization=My%20Company&description=Quick%20access%20to%20my%20web%20app" -o myapp.mobileconfig
+curl "http://localhost:3000/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com&organization=My%20Company&description=Quick%20access%20to%20my%20web%20app" -o myapp.mobileconfig
 ```
 
-#### 3. 查看可用的參數
+#### 3. 生成 VPN Profile
 ```bash
-curl http://localhost:3000/api/mdm/profile/info
+curl "http://localhost:3000/mdm/vpn?vpnName=My%20VPN&vpnServer=vpn.mycompany.com&organization=My%20Company" -o vpn.mobileconfig
+```
+
+#### 4. 查看可用的參數
+```bash
+curl http://localhost:3000/mdm/webclip/info
+curl http://localhost:3000/mdm/vpn/info
 ```
 
 ### 參數說明
@@ -108,7 +116,7 @@ mdm-poc/
 │   ├── app.js          # 主應用程式
 │   ├── logger.js       # 日誌模組
 │   └── routes/
-│       ├── api.js      # MDM Profile API 路由
+│       ├── mdm.js      # MDM Profile 路由
 │       └── README.md   # 路由說明文件
 ├── deployment/         # 部署配置檔案
 │   ├── docker-compose.prod.yml
@@ -125,7 +133,7 @@ mdm-poc/
 ## 開發
 
 ### 新增 MDM Profile 類型
-在 `src/routes/api.js` 中新增你的 MDM Profile 類型：
+在 `src/routes/mdm.js` 中新增你的 MDM Profile 類型：
 
 ```javascript
 // 新增 VPN Profile
@@ -161,7 +169,7 @@ logger.info('MDM profile generated', {
 npm run dev
 
 # 測試 MDM Profile 生成
-curl "http://localhost:3000/api/mdm/profile?webClipName=Test%20App&webClipURL=https://example.com" -o test.mobileconfig
+curl "http://localhost:3000/mdm/webclip?webClipName=Test%20App&webClipURL=https://example.com" -o test.mobileconfig
 ```
 
 ### Docker 部署
@@ -174,7 +182,7 @@ docker build -t mdm-poc .
 docker-compose up -d
 
 # 測試 MDM Profile 生成
-curl "http://localhost:3000/api/mdm/profile?webClipName=Test%20App&webClipURL=https://example.com" -o test.mobileconfig
+curl "http://localhost:3000/mdm/webclip?webClipName=Test%20App&webClipURL=https://example.com" -o test.mobileconfig
 ```
 
 ### Digital Ocean 部署
@@ -206,10 +214,10 @@ docker-compose -f deployment/docker-compose.prod.yml up -d
 
 ```bash
 # 基本 Web Clip Profile
-curl "https://your-domain.com/api/mdm/profile?webClipName=My%20App&webClipURL=https://myapp.com" -o myapp.mobileconfig
+curl "https://your-domain.com/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com" -o myapp.mobileconfig
 
 # 完整配置 Profile
-curl "https://your-domain.com/api/mdm/profile?webClipName=My%20App&webClipURL=https://myapp.com&organization=My%20Company&description=Quick%20access%20to%20my%20web%20app" -o myapp.mobileconfig
+curl "https://your-domain.com/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com&organization=My%20Company&description=Quick%20access%20to%20my%20web%20app" -o myapp.mobileconfig
 ```
 
 詳細部署說明請參考 `deployment/README.md`

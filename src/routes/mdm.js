@@ -186,8 +186,12 @@ function generateWebClipProfile({ profileName, organization, description, identi
             <key>Icon</key>
             <data>${webClipIcon ? generateIconData(webClipIcon) : ''}</data>
             <key>IsRemovable</key>
-            <true/>
+            <false/>
             <key>Precomposed</key>
+            <true/>
+            <key>FullScreen</key>
+            <true/>
+            <key>IgnoreManifestScope</key>
             <true/>
         </dict>
     </array>

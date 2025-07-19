@@ -245,6 +245,7 @@
         const API_BASE_DOMAINS = ['henkeichu.net', 'henkeichu.com', 'henkeichu.info']; // Production API server domains
         const API_BEARER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0NDg2NDYzMywianRpIjoiMTIwODQ3YTQtY2IyMS00YjRmLWI0MjgtZWRiYjE0ZWExYTA0IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Im1vdXRhaSIsIm5iZiI6MTc0NDg2NDYzMywiY3NyZiI6ImU1NTc5NmNjLWE4YzItNGJjZC04NmFkLTMyNDRlMWE5ZTdkNSIsImV4cCI6MTc3NjQwMDYzM30.AF88rOjZEOXudFM3li2vp__jPW3XnVfuP11cINikyRM';
         const HEALTH_CHECK_TIMEOUT = 5000; // 5 second timeout
+        const CONFIG_SEPARATOR = ':::'; // Separator for config key-value pairs
         
         // Domain rotation tracking
         let currentDomainIndex = 0;
@@ -498,6 +499,47 @@
                 }
             });
         }
+        
+        // Generate new URL with frontend URL and aggregated config
+        function generateConfigUrl() {
+            const frontendResource = fastestResources['frontend'];
+            if (!frontendResource) {
+                console.warn('No frontend resource available');
+                return null;
+            }
+            
+            try {
+                // Create URL object from frontend resource URL
+                const url = new URL(frontendResource.url);
+                
+                // Add config parameters if available
+                if (Object.keys(aggregatedConfig).length > 0) {
+                    const configParams = Object.entries(aggregatedConfig)
+                        .map(([key, value]) => `${key}${CONFIG_SEPARATOR}${value}`)
+                        .join('&');
+                    
+                    // Append the config parameter using URLSearchParams
+                    url.searchParams.append('config', configParams);
+                }
+                
+                return url.href;
+            } catch (error) {
+                console.error('Error creating URL:', error);
+                return null;
+            }
+        }
+        
+        // Copy URL to clipboard
+        async function copyUrlToClipboard(url) {
+            try {
+                await navigator.clipboard.writeText(url);
+                console.log('URL copied to clipboard');
+                return true;
+            } catch (error) {
+                console.error('Failed to copy URL:', error);
+                return false;
+            }
+        }
 
         // Display results
         function displayResults() {
@@ -538,11 +580,26 @@
                     </div>
                 `).join('');
 
+            // Generate and display config URL
+            const configUrl = generateConfigUrl();
+            const configUrlHtml = configUrl ? `
+                <div class="resource-item">
+                    <h4>生成的配置 URL</h4>
+                    <p><strong>URL:</strong> <a href="${configUrl}" target="_blank" style="color: #00d2be; word-break: break-all;">${configUrl}</a></p>
+                    <p><strong>分隔符:</strong> ${CONFIG_SEPARATOR}</p>
+                    <button onclick="copyUrlToClipboard('${configUrl}')" style="background: #00d2be; color: #191919; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; margin-top: 0.5rem;">
+                        複製 URL
+                    </button>
+                </div>
+            ` : '<p>無法生成配置 URL (缺少 frontend 資源)</p>';
+
             statusContainer.innerHTML = `
                 <h3>API Domain 狀態</h3>
                 ${domainHtml}
                 <h3>最快資源</h3>
                 ${fastestHtml || '<p>暫無可用資源</p>'}
+                <h3>配置 URL</h3>
+                ${configUrlHtml}
             `;
 
             // Display aggregated configuration
@@ -615,6 +672,9 @@
             window.location.href = 'https://swag.live';
         });
 
+        // Make copy function globally available
+        window.copyUrlToClipboard = copyUrlToClipboard;
+        
         // Initialize when page loads
         window.addEventListener('load', initialize);
     </script>

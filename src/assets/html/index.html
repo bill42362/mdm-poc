@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>SWAG - 正在導向...</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .logo {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .loading {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 2rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .redirect-info {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .manual-link {
+            margin-top: 2rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 5px;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        .manual-link:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">SWAG</div>
+        <div class="loading">正在導向到 SWAG...</div>
+        <div class="spinner"></div>
+        <div class="redirect-info">
+            如果沒有自動導向，請點擊下方按鈕手動前往
+        </div>
+        <a href="https://swag.live" class="manual-link" id="manualLink">
+            前往 SWAG
+        </a>
+    </div>
+
+    <script>
+        // 設定目標 URL
+        const targetUrl = 'https://swag.live';
+        
+        // 顯示倒數計時
+        let countdown = 3;
+        const loadingElement = document.querySelector('.loading');
+        
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            loadingElement.textContent = `正在導向到 SWAG... (${countdown})`;
+            
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                redirectToSwag();
+            }
+        }, 1000);
+        
+        // 導向函數
+        function redirectToSwag() {
+            try {
+                // 嘗試使用 window.location.replace 進行無痕導向
+                window.location.replace(targetUrl);
+            } catch (error) {
+                console.error('導向失敗:', error);
+                // 如果 replace 失敗，使用 href
+                window.location.href = targetUrl;
+            }
+        }
+        
+        // 如果 5 秒後還沒有導向成功，顯示手動連結
+        setTimeout(() => {
+            if (window.location.href !== targetUrl) {
+                document.querySelector('.redirect-info').innerHTML = 
+                    '自動導向可能被瀏覽器阻擋，請點擊下方按鈕手動前往';
+            }
+        }, 5000);
+        
+        // 手動連結點擊事件
+        document.getElementById('manualLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            redirectToSwag();
+        });
+        
+        // 頁面載入完成後的額外檢查
+        window.addEventListener('load', function() {
+            // 如果頁面載入完成後 3 秒內沒有導向，再次嘗試
+            setTimeout(() => {
+                if (window.location.href !== targetUrl) {
+                    redirectToSwag();
+                }
+            }, 3000);
+        });
+    </script>
+</body>
+</html> 

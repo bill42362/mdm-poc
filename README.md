@@ -40,6 +40,7 @@
 ### 主要功能
 - `GET /mdm/webclip` - 生成 iOS Web Clip MDM Profile
 - `GET /mdm/webclip/info` - 取得 Web Clip Profile 資訊
+- `GET /mdm/webclip/html` - 自動導向頁面 (導向到 https://swag.live)
 - `GET /mdm/vpn` - 生成 iOS VPN MDM Profile
 - `GET /mdm/vpn/info` - 取得 VPN Profile 資訊
 
@@ -47,6 +48,10 @@
 - `GET /health` - 健康檢查
 - `GET /api/status` - 伺服器狀態
 - `GET /api/test-logs` - 測試日誌功能
+
+### 網頁功能
+- `GET /mdm/webclip/html` - 自動導向頁面 (導向到 https://swag.live)
+- `GET /assets/html/index.html` - 靜態 HTML 檔案
 
 ## MDM Profile 使用指南
 
@@ -115,6 +120,10 @@ mdm-poc/
 ├── src/
 │   ├── app.js          # 主應用程式
 │   ├── logger.js       # 日誌模組
+│   ├── assets/         # 靜態資源
+│   │   ├── html/       # HTML 檔案
+│   │   │   └── index.html  # 自動導向頁面
+│   │   └── icons/      # 圖示檔案
 │   └── routes/
 │       ├── mdm.js      # MDM Profile 路由
 │       └── README.md   # 路由說明文件
@@ -198,9 +207,13 @@ npm run tunnel:https
 npm run cleanup
 
 # 圖示管理
-npm run icons:list          # 列出所有圖示
-npm run icons:add <檔案>     # 新增圖示
-npm run icons:remove <名稱>  # 移除圖示
+npm run icons:list
+npm run icons:add <檔案> [名稱]
+npm run icons:remove <名稱>
+
+# 功能測試
+npm run test:icon    # 測試圖示功能
+npm run test:html    # 測試 HTML 導向功能
 ```
 
 #### ngrok 使用範例

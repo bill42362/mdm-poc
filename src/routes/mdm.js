@@ -91,6 +91,15 @@ router.get('/webclip/info', (req, res) => {
   });
 });
 
+// GET /webclip/html - 提供導向頁面
+router.get('/webclip/html', (req, res) => {
+  logger.info('Web Clip HTML page requested', { 
+    userAgent: req.get('User-Agent'),
+    ip: req.ip 
+  });
+  res.sendFile(path.join(__dirname, '../assets', 'html', 'index.html'));
+});
+
 // GET /vpn - 回傳 iOS VPN MDM Profile (範例)
 router.get('/vpn', (req, res) => {
   logger.info('VPN MDM profile requested', { 

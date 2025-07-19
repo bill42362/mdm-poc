@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -32,6 +33,9 @@ app.use(morgan('combined', {
 
 // 自定義請求日誌中間件
 app.use(requestLogger);
+
+// 靜態檔案服務
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 // 健康檢查端點
 app.get('/health', (req, res) => {

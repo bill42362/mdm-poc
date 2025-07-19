@@ -16,7 +16,9 @@
     "tunnel": "npm run dev & ngrok http 3001",
     "tunnel:https": "npm run dev & ngrok http 3001 --scheme=https",
     "tunnel:subdomain": "npm run dev & ngrok http 3001 --subdomain=mdm-poc",
-    "tunnel:config": "npm run dev & ngrok start --config=ngrok.yml mdm-poc-basic"
+    "tunnel:config": "npm run dev & ngrok start --config=ngrok.yml mdm-poc-basic",
+    "cleanup": "./scripts/cleanup.sh",
+    "kill": "./scripts/cleanup.sh"
   },
   "keywords": ["mdm", "ios", "profile", "webclip", "mobileconfig", "express"],
   "author": "",

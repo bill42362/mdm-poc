@@ -193,6 +193,9 @@ npm run tunnel
 
 # 同時啟動開發伺服器和 HTTPS 隧道
 npm run tunnel:https
+
+# 清理所有進程 (停止開發伺服器和 ngrok)
+npm run cleanup
 ```
 
 #### ngrok 使用範例

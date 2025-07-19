@@ -79,4 +79,142 @@ router.get('/users/:id', (req, res) => {
   res.json(user);
 });
 
+// GET /api/mdm/profile - 回傳 iOS Web Clip MDM Profile
+router.get('/mdm/profile', (req, res) => {
+  logger.info('Web Clip MDM profile requested', { 
+    userAgent: req.get('User-Agent'),
+    ip: req.ip 
+  });
+
+  // 從查詢參數獲取配置
+  const { 
+    profileName = 'Web Clip Profile',
+    organization = 'Your Organization',
+    description = 'Web Clip Profile for quick web app access',
+    identifier = 'com.yourcompany.webclip.profile',
+    webClipName = 'My Web App',
+    webClipURL = 'https://example.com',
+    webClipIcon = 'https://example.com/icon.png'
+  } = req.query;
+
+  // 生成 Web Clip MDM Profile XML
+  const mdmProfile = generateWebClipProfile({
+    profileName,
+    organization,
+    description,
+    identifier,
+    webClipName,
+    webClipURL,
+    webClipIcon
+  });
+
+  // 設定回應標頭
+  res.set({
+    'Content-Type': 'application/x-apple-aspen-config',
+    'Content-Disposition': `attachment; filename="${profileName}.mobileconfig"`,
+    'Cache-Control': 'no-cache'
+  });
+
+  res.send(mdmProfile);
+});
+
+// GET /api/mdm/profile/info - 取得 MDM Profile 資訊
+router.get('/mdm/profile/info', (req, res) => {
+  logger.info('MDM profile info requested');
+  
+  res.json({
+    description: 'Web Clip MDM Profile Generator',
+    endpoint: '/api/mdm/profile',
+    method: 'GET',
+    parameters: {
+      profileName: 'string (optional) - Profile display name',
+      organization: 'string (optional) - Organization name',
+      description: 'string (optional) - Profile description',
+      identifier: 'string (optional) - Profile identifier',
+      webClipName: 'string (optional) - Web clip name on home screen',
+      webClipURL: 'string (optional) - Web app URL',
+      webClipIcon: 'string (optional) - Icon URL for web clip'
+    },
+    example: {
+      url: '/api/mdm/profile?webClipName=My%20App&webClipURL=https://myapp.com&organization=My%20Company'
+    }
+  });
+});
+
+// 輔助函數：生成 Web Clip MDM Profile
+function generateWebClipProfile({ profileName, organization, description, identifier, webClipName, webClipURL, webClipIcon }) {
+  const uuid = generateUUID();
+  const webClipUUID = generateUUID();
+  
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>PayloadType</key>
+            <string>com.apple.webClip.managed</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>PayloadIdentifier</key>
+            <string>${identifier}.webclip</string>
+            <key>PayloadUUID</key>
+            <string>${webClipUUID}</string>
+            <key>PayloadDisplayName</key>
+            <string>${webClipName}</string>
+            <key>PayloadDescription</key>
+            <string>Web Clip for ${webClipName}</string>
+            <key>PayloadOrganization</key>
+            <string>${organization}</string>
+            <key>URL</key>
+            <string>${webClipURL}</string>
+            <key>Label</key>
+            <string>${webClipName}</string>
+            <key>Icon</key>
+            <data>${webClipIcon ? generateIconData(webClipIcon) : ''}</data>
+            <key>IsRemovable</key>
+            <true/>
+            <key>Precomposed</key>
+            <true/>
+        </dict>
+    </array>
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+    <key>PayloadIdentifier</key>
+    <string>${identifier}</string>
+    <key>PayloadUUID</key>
+    <string>${uuid}</string>
+    <key>PayloadDisplayName</key>
+    <string>${profileName}</string>
+    <key>PayloadDescription</key>
+    <string>${description}</string>
+    <key>PayloadOrganization</key>
+    <string>${organization}</string>
+    <key>PayloadExpirationDate</key>
+    <date>2026-12-31T23:59:59Z</date>
+</dict>
+</plist>`;
+}
+
+// 輔助函數：生成 UUID
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+// 輔助函數：生成圖示資料 (簡化版本)
+function generateIconData(iconUrl) {
+  // 這裡可以加入實際的圖示下載和轉換邏輯
+  // 目前返回空字串，讓系統使用預設圖示
+  return '';
+}
+
 module.exports = router; 

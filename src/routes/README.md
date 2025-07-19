@@ -117,6 +117,10 @@ router.post('/users', (req, res) => {
 - `GET /api/status` - 伺服器狀態
 - `GET /api/test-logs` - 測試日誌
 
+### MDM Profile 端點
+- `GET /api/mdm/profile` - 生成 iOS Web Clip MDM Profile
+- `GET /api/mdm/profile/info` - 取得 MDM Profile 資訊
+
 ### 使用者端點 (範例)
 - `GET /api/users` - 取得所有使用者
 - `POST /api/users` - 建立新使用者
@@ -135,4 +139,10 @@ curl -X POST http://localhost:3000/api/users \
 
 # 測試參數端點
 curl http://localhost:3000/api/users/1
+
+# 測試 MDM Profile 端點
+curl http://localhost:3000/api/mdm/profile/info
+
+# 生成 Web Clip Profile
+curl "http://localhost:3000/api/mdm/profile?webClipName=My%20App&webClipURL=https://myapp.com&organization=My%20Company" -o profile.mobileconfig
 ``` 

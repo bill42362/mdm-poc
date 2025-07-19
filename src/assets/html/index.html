@@ -242,9 +242,61 @@
 
     <script>
         // API configuration
-        const API_BASE_URL = 'https://henkeichu.net'; // Production API server
+        const API_BASE_DOMAINS = ['henkeichu.net', 'henkeichu.com', 'henkeichu.info']; // Production API server domains
         const API_BEARER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0NDg2NDYzMywianRpIjoiMTIwODQ3YTQtY2IyMS00YjRmLWI0MjgtZWRiYjE0ZWExYTA0IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Im1vdXRhaSIsIm5iZiI6MTc0NDg2NDYzMywiY3NyZiI6ImU1NTc5NmNjLWE4YzItNGJjZC04NmFkLTMyNDRlMWE5ZTdkNSIsImV4cCI6MTc3NjQwMDYzM30.AF88rOjZEOXudFM3li2vp__jPW3XnVfuP11cINikyRM';
         const HEALTH_CHECK_TIMEOUT = 5000; // 5 second timeout
+        
+        // Domain rotation tracking
+        let currentDomainIndex = 0;
+        let domainFailures = {};
+        let domainBlockedUntil = {}; // Track when domains are blocked until
+        let lastDomainCheck = {}; // Track last check time for each domain
+        
+        // Function to check if a domain is currently blocked
+        function isDomainBlocked(domain) {
+            const blockedUntil = domainBlockedUntil[domain];
+            if (!blockedUntil) return false;
+            
+            // If blocked time has passed, unblock the domain
+            if (Date.now() > blockedUntil) {
+                delete domainBlockedUntil[domain];
+                domainFailures[domain] = 0; // Reset failures when unblocking
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Function to mark domain as blocked
+        function markDomainAsBlocked(domain, blockDuration = 300000) { // Default 5 minutes
+            domainBlockedUntil[domain] = Date.now() + blockDuration;
+            console.log(`Domain ${domain} marked as blocked until ${new Date(domainBlockedUntil[domain]).toLocaleTimeString()}`);
+        }
+        
+        // Function to find the best available domain
+        function findBestDomain() {
+            let bestIndex = -1;
+            let minFailures = Infinity;
+            
+            for (let i = 0; i < API_BASE_DOMAINS.length; i++) {
+                const domain = API_BASE_DOMAINS[i];
+                
+                // Skip blocked domains
+                if (isDomainBlocked(domain)) {
+                    console.log(`Skipping blocked domain: ${domain}`);
+                    continue;
+                }
+                
+                const failures = domainFailures[domain] || 0;
+                if (failures < minFailures) {
+                    minFailures = failures;
+                    bestIndex = i;
+                }
+            }
+            
+            // If no unblocked domain found, return current domain
+            return bestIndex >= 0 ? bestIndex : currentDomainIndex;
+        }
 
         // Resource type configuration
         const resourceTypes = ['cdn_enc', 'frontend', 'ws_soketi'];
@@ -314,10 +366,8 @@
             }
         }
 
-        // Get resource list by type
+        // Get resource list by type with smart domain rotation
         async function fetchResourcesByType(resourceType) {
-            const url = `${API_BASE_URL}/resources?type=${encodeURIComponent(resourceType)}`;
-
             const headers = {
                 'Content-Type': 'application/json'
             };
@@ -328,16 +378,63 @@
                 headers['Authorization'] = `Bearer ${cleanToken}`;
             }
 
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: headers
-            });
+            // Get list of unblocked domains, sorted by failure count
+            const availableDomains = API_BASE_DOMAINS
+                .map((domain, index) => ({ domain, index, failures: domainFailures[domain] || 0 }))
+                .filter(({ domain }) => !isDomainBlocked(domain))
+                .sort((a, b) => a.failures - b.failures);
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+            if (availableDomains.length === 0) {
+                throw new Error('All domains are currently blocked. Please wait for domains to become available.');
             }
 
-            return await response.json();
+            // Try domains in order of reliability (fewest failures first)
+            for (const { domain, index } of availableDomains) {
+                try {
+                    const url = `https://${domain}/resources?type=${encodeURIComponent(resourceType)}`;
+                    
+                    const response = await fetch(url, {
+                        method: 'GET',
+                        headers: headers
+                    });
+
+                    if (response.ok) {
+                        // Success - update current domain index and reset failures
+                        currentDomainIndex = index;
+                        domainFailures[domain] = 0;
+                        console.log(`Successfully using domain: ${domain}`);
+                        return await response.json();
+                    } else {
+                        // HTTP error - handle based on status code
+                        domainFailures[domain] = (domainFailures[domain] || 0) + 1;
+                        
+                        // Check if this looks like a blocking response
+                        if (response.status === 403 || response.status === 429 || response.status >= 500) {
+                            // Likely blocked - mark as blocked for longer period
+                            const blockDuration = response.status === 429 ? 600000 : 300000; // 10 min for rate limit, 5 min for others
+                            markDomainAsBlocked(domain, blockDuration);
+                            console.log(`Domain ${domain} appears blocked (HTTP ${response.status}), blocking for ${blockDuration/1000}s`);
+                        } else {
+                            console.log(`Domain ${domain} failed with HTTP ${response.status}, trying next domain...`);
+                        }
+                    }
+                } catch (error) {
+                    // Network error - handle based on error type
+                    domainFailures[domain] = (domainFailures[domain] || 0) + 1;
+                    
+                    // Check if this looks like a blocking error
+                    if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                        // Network error - likely blocked
+                        markDomainAsBlocked(domain, 300000); // Block for 5 minutes
+                        console.log(`Domain ${domain} appears blocked (network error), blocking for 5 minutes`);
+                    } else {
+                        console.log(`Domain ${domain} failed with error: ${error.message}, trying next domain...`);
+                    }
+                }
+            }
+
+            // All available domains failed
+            throw new Error(`All available domains failed. ${availableDomains.length} domains tried.`);
         }
 
         // Check health status of a single resource
@@ -404,6 +501,32 @@
 
         // Display results
         function displayResults() {
+            // Display domain status
+            const domainHtml = API_BASE_DOMAINS.map((domain, index) => {
+                const isCurrent = index === currentDomainIndex;
+                const failures = domainFailures[domain] || 0;
+                const isBlocked = isDomainBlocked(domain);
+                
+                let status;
+                if (isBlocked) {
+                    const blockedUntil = domainBlockedUntil[domain];
+                    const remainingTime = Math.ceil((blockedUntil - Date.now()) / 1000);
+                    status = `🚫 封禁中 (${remainingTime}s)`;
+                } else if (isCurrent) {
+                    status = '✅ 當前使用';
+                } else if (failures > 0) {
+                    status = `⚠️ 失敗 ${failures} 次`;
+                } else {
+                    status = '🟢 可用';
+                }
+                
+                return `
+                    <div class="config-item ${isCurrent ? 'success' : isBlocked ? 'error' : ''}">
+                        <strong>${domain}:</strong> ${status}
+                    </div>
+                `;
+            }).join('');
+
             // Display fastest resources
             const fastestHtml = Object.entries(fastestResources)
                 .map(([type, resource]) => `
@@ -416,6 +539,8 @@
                 `).join('');
 
             statusContainer.innerHTML = `
+                <h3>API Domain 狀態</h3>
+                ${domainHtml}
                 <h3>最快資源</h3>
                 ${fastestHtml || '<p>暫無可用資源</p>'}
             `;
@@ -457,7 +582,9 @@
         // Update status
         function updateStatus(message) {
             if (loadingElement) {
-                loadingElement.textContent = message;
+                const currentDomain = API_BASE_DOMAINS[currentDomainIndex];
+                const domainStatus = `[使用: ${currentDomain}]`;
+                loadingElement.textContent = `${message} ${domainStatus}`;
             }
         }
 
@@ -468,6 +595,18 @@
                 aggregateConfigs();
                 displayResults();
             }, 30000); // Update every 30 seconds
+            
+            // Clean up expired domain blocks every minute
+            setInterval(() => {
+                const now = Date.now();
+                Object.keys(domainBlockedUntil).forEach(domain => {
+                    if (now > domainBlockedUntil[domain]) {
+                        delete domainBlockedUntil[domain];
+                        domainFailures[domain] = 0;
+                        console.log(`Domain ${domain} unblocked automatically`);
+                    }
+                });
+            }, 60000); // Check every minute
         }
 
         // Manual link click event

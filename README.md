@@ -57,14 +57,19 @@
 
 ### 快速開始
 
-#### 1. 生成基本 Web Clip Profile
+#### 1. 生成基本 Web Clip Profile (使用預設 HTML)
 ```bash
-curl "http://localhost:3001/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com" -o myapp.mobileconfig
+curl "http://localhost:3001/mdm/webclip?webClipName=My%20App" -o myapp.mobileconfig
 ```
 
 #### 2. 生成完整配置的 Profile
 ```bash
 curl "http://localhost:3001/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com&organization=My%20Company&description=Quick%20access%20to%20my%20web%20app&webClipIcon=my-icon.png" -o myapp.mobileconfig
+```
+
+#### 3. 使用本地 HTML 檔案
+```bash
+curl "http://localhost:3001/mdm/webclip?webClipName=My%20App&webClipURL=my-page.html" -o myapp.mobileconfig
 ```
 
 #### 3. 生成 VPN Profile
@@ -83,7 +88,7 @@ curl http://localhost:3001/mdm/vpn/info
 | 參數 | 類型 | 必填 | 說明 |
 |------|------|------|------|
 | `webClipName` | string | 是 | Web Clip 在主畫面上顯示的名稱 |
-| `webClipURL` | string | 是 | 要開啟的網頁 URL |
+| `webClipURL` | string | 否 | HTML 檔案名稱 (位於 src/assets/html/) 或完整 URL (預設: index.html) |
 | `organization` | string | 否 | 組織名稱 |
 | `profileName` | string | 否 | Profile 顯示名稱 |
 | `description` | string | 否 | Profile 描述 |
@@ -212,8 +217,9 @@ npm run icons:add <檔案> [名稱]
 npm run icons:remove <名稱>
 
 # 功能測試
-npm run test:icon    # 測試圖示功能
-npm run test:html    # 測試 HTML 導向功能
+npm run test:icon         # 測試圖示功能
+npm run test:html         # 測試 HTML 導向功能
+npm run test:webclip-html # 測試 WebClip HTML 功能
 ```
 
 #### ngrok 使用範例

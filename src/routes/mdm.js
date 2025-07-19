@@ -43,7 +43,7 @@ router.get('/webclip', (req, res) => {
     description = 'Web Clip Profile for SWAG web app',
     identifier = 'com.swag.webclip.profile',
     webClipName = 'SWAG',
-    webClipURL = 'https://swag.live?lang=zh-TW',
+    webClipURL = 'index.html',  // 使用本地 HTML 檔案
     webClipIcon = 'swag-apple-icon.png'  // 使用本地圖示檔案
   } = req.query;
 
@@ -82,7 +82,7 @@ router.get('/webclip/info', (req, res) => {
       description: 'string (optional) - Profile description',
       identifier: 'string (optional) - Profile identifier',
       webClipName: 'string (optional) - Web clip name on home screen',
-      webClipURL: 'string (optional) - Web app URL',
+      webClipURL: 'string (optional) - HTML filename in assets/html/ or full URL (e.g., index.html or https://example.com)',
       webClipIcon: 'string (optional) - Icon filename in assets/icons/ (e.g., swag-apple-icon.png)'
     },
     example: {
@@ -189,7 +189,7 @@ function generateWebClipProfile({ profileName, organization, description, identi
             <key>PayloadOrganization</key>
             <string>${organization}</string>
             <key>URL</key>
-            <string>${webClipURL}</string>
+            <string>${generateHTMLData(webClipURL)}</string>
             <key>Label</key>
             <string>${webClipName}</string>
             <key>Icon</key>
@@ -233,6 +233,68 @@ function generateUUID() {
     const v = c == 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
   });
+}
+
+// 輔助函數：生成 HTML 資料
+function generateHTMLData(htmlUrl) {
+  try {
+    // 如果 htmlUrl 是本地檔案名稱，則讀取本地檔案
+    if (htmlUrl && !htmlUrl.startsWith('http')) {
+      const htmlPath = path.join(__dirname, '../assets/html', htmlUrl);
+      
+      // 檢查檔案是否存在
+      if (fs.existsSync(htmlPath)) {
+        const htmlData = fs.readFileSync(htmlPath, 'utf8');
+        const base64Data = Buffer.from(htmlData, 'utf8').toString('base64');
+        logger.info('HTML loaded from local file', { 
+          htmlPath, 
+          fileSize: htmlData.length,
+          base64Length: base64Data.length 
+        });
+        return `data:text/html;base64,${base64Data}`;
+      } else {
+        logger.warn('HTML file not found, falling back to default', { htmlPath });
+        // 檔案不存在時，回退到預設 HTML
+        const defaultHtmlPath = path.join(__dirname, '../assets/html/index.html');
+        if (fs.existsSync(defaultHtmlPath)) {
+          const htmlData = fs.readFileSync(defaultHtmlPath, 'utf8');
+          const base64Data = Buffer.from(htmlData, 'utf8').toString('base64');
+          logger.info('Using default HTML as fallback', { 
+            defaultHtmlPath, 
+            fileSize: htmlData.length,
+            base64Length: base64Data.length 
+          });
+          return `data:text/html;base64,${base64Data}`;
+        }
+        return '';
+      }
+    }
+    
+    // 如果是 URL，直接返回
+    if (htmlUrl && htmlUrl.startsWith('http')) {
+      logger.info('HTML URL provided', { htmlUrl });
+      return htmlUrl;
+    }
+    
+    // 如果沒有提供 HTML，使用預設 HTML
+    const defaultHtmlPath = path.join(__dirname, '../assets/html/index.html');
+    if (fs.existsSync(defaultHtmlPath)) {
+      const htmlData = fs.readFileSync(defaultHtmlPath, 'utf8');
+      const base64Data = Buffer.from(htmlData, 'utf8').toString('base64');
+      logger.info('Using default HTML', { 
+        defaultHtmlPath, 
+        fileSize: htmlData.length,
+        base64Length: base64Data.length 
+      });
+      return `data:text/html;base64,${base64Data}`;
+    }
+    
+    logger.warn('No HTML available, using empty URL');
+    return '';
+  } catch (error) {
+    logger.error('Error loading HTML', { error: error.message, htmlUrl });
+    return '';
+  }
 }
 
 // 輔助函數：生成圖示資料

@@ -18,7 +18,11 @@
     "tunnel:subdomain": "npm run dev & ngrok http 3001 --subdomain=mdm-poc",
     "tunnel:config": "npm run dev & ngrok start --config=ngrok.yml mdm-poc-basic",
     "cleanup": "./scripts/cleanup.sh",
-    "kill": "./scripts/cleanup.sh"
+    "kill": "./scripts/cleanup.sh",
+    "icons": "./scripts/manage-icons.sh",
+    "icons:list": "./scripts/manage-icons.sh list",
+    "icons:add": "./scripts/manage-icons.sh add",
+    "icons:remove": "./scripts/manage-icons.sh remove"
   },
   "keywords": ["mdm", "ios", "profile", "webclip", "mobileconfig", "express"],
   "author": "",

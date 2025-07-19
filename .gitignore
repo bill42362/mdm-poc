@@ -53,6 +53,10 @@ jspm_packages/
 # ngrok configuration
 ngrok.yml
 
+# 保留圖示檔案，但忽略備份檔案
+src/assets/icons/*.backup
+src/assets/icons/*.tmp
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache

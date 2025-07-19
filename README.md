@@ -196,6 +196,11 @@ npm run tunnel:https
 
 # 清理所有進程 (停止開發伺服器和 ngrok)
 npm run cleanup
+
+# 圖示管理
+npm run icons:list          # 列出所有圖示
+npm run icons:add <檔案>     # 新增圖示
+npm run icons:remove <名稱>  # 移除圖示
 ```
 
 #### ngrok 使用範例

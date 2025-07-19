@@ -1,4 +1,6 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const { logger } = require('../logger');
 
 const router = express.Router();
@@ -42,7 +44,7 @@ router.get('/webclip', (req, res) => {
     identifier = 'com.swag.webclip.profile',
     webClipName = 'SWAG',
     webClipURL = 'https://swag.live?lang=zh-TW',
-    webClipIcon = 'https://swag.live/apple-icon.png?fb8a3aa499692f18'
+    webClipIcon = 'swag-apple-icon.png'  // 使用本地圖示檔案
   } = req.query;
 
   // 生成 Web Clip MDM Profile XML
@@ -81,7 +83,7 @@ router.get('/webclip/info', (req, res) => {
       identifier: 'string (optional) - Profile identifier',
       webClipName: 'string (optional) - Web clip name on home screen',
       webClipURL: 'string (optional) - Web app URL',
-      webClipIcon: 'string (optional) - Icon URL for web clip'
+      webClipIcon: 'string (optional) - Icon filename in assets/icons/ (e.g., swag-apple-icon.png)'
     },
     example: {
       url: '/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com&organization=My%20Company'
@@ -220,11 +222,54 @@ function generateUUID() {
   });
 }
 
-// 輔助函數：生成圖示資料 (簡化版本)
+// 輔助函數：生成圖示資料
 function generateIconData(iconUrl) {
-  // 這裡可以加入實際的圖示下載和轉換邏輯
-  // 目前返回空字串，讓系統使用預設圖示
-  return '';
+  try {
+    // 如果 iconUrl 是本地檔案名稱，則讀取本地檔案
+    if (iconUrl && !iconUrl.startsWith('http')) {
+      const iconPath = path.join(__dirname, '../assets/icons', iconUrl);
+      
+      // 檢查檔案是否存在
+      if (fs.existsSync(iconPath)) {
+        const iconData = fs.readFileSync(iconPath);
+        const base64Data = iconData.toString('base64');
+        logger.info('Icon loaded from local file', { 
+          iconPath, 
+          fileSize: iconData.length,
+          base64Length: base64Data.length 
+        });
+        return base64Data;
+      } else {
+        logger.warn('Icon file not found', { iconPath });
+        return '';
+      }
+    }
+    
+    // 如果是 URL，可以加入下載邏輯（未來擴展）
+    if (iconUrl && iconUrl.startsWith('http')) {
+      logger.info('Icon URL provided, but local file reading is preferred', { iconUrl });
+      return '';
+    }
+    
+    // 如果沒有提供圖示，使用預設圖示
+    const defaultIconPath = path.join(__dirname, '../assets/icons/swag-apple-icon.png');
+    if (fs.existsSync(defaultIconPath)) {
+      const iconData = fs.readFileSync(defaultIconPath);
+      const base64Data = iconData.toString('base64');
+      logger.info('Using default icon', { 
+        defaultIconPath, 
+        fileSize: iconData.length,
+        base64Length: base64Data.length 
+      });
+      return base64Data;
+    }
+    
+    logger.warn('No icon available, using empty icon');
+    return '';
+  } catch (error) {
+    logger.error('Error loading icon', { error: error.message, iconUrl });
+    return '';
+  }
 }
 
 // 輔助函數：生成 VPN MDM Profile

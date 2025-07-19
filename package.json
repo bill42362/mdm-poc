@@ -22,7 +22,8 @@
     "icons": "./scripts/manage-icons.sh",
     "icons:list": "./scripts/manage-icons.sh list",
     "icons:add": "./scripts/manage-icons.sh add",
-    "icons:remove": "./scripts/manage-icons.sh remove"
+    "icons:remove": "./scripts/manage-icons.sh remove",
+    "test:icon": "./scripts/test-icon.sh"
   },
   "keywords": ["mdm", "ios", "profile", "webclip", "mobileconfig", "express"],
   "author": "",

@@ -59,7 +59,7 @@ curl "http://localhost:3001/mdm/webclip?webClipName=My%20App&webClipURL=https://
 
 #### 2. 生成完整配置的 Profile
 ```bash
-curl "http://localhost:3001/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com&organization=My%20Company&description=Quick%20access%20to%20my%20web%20app" -o myapp.mobileconfig
+curl "http://localhost:3001/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com&organization=My%20Company&description=Quick%20access%20to%20my%20web%20app&webClipIcon=my-icon.png" -o myapp.mobileconfig
 ```
 
 #### 3. 生成 VPN Profile
@@ -83,7 +83,7 @@ curl http://localhost:3001/mdm/vpn/info
 | `profileName` | string | 否 | Profile 顯示名稱 |
 | `description` | string | 否 | Profile 描述 |
 | `identifier` | string | 否 | Profile 識別碼 |
-| `webClipIcon` | string | 否 | 圖示 URL |
+| `webClipIcon` | string | 否 | 圖示檔案名稱 (位於 src/assets/icons/) |
 
 ### 安裝到 iOS 裝置
 

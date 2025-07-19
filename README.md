@@ -54,23 +54,23 @@
 
 #### 1. 生成基本 Web Clip Profile
 ```bash
-curl "http://localhost:3000/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com" -o myapp.mobileconfig
+curl "http://localhost:3001/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com" -o myapp.mobileconfig
 ```
 
 #### 2. 生成完整配置的 Profile
 ```bash
-curl "http://localhost:3000/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com&organization=My%20Company&description=Quick%20access%20to%20my%20web%20app" -o myapp.mobileconfig
+curl "http://localhost:3001/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com&organization=My%20Company&description=Quick%20access%20to%20my%20web%20app" -o myapp.mobileconfig
 ```
 
 #### 3. 生成 VPN Profile
 ```bash
-curl "http://localhost:3000/mdm/vpn?vpnName=My%20VPN&vpnServer=vpn.mycompany.com&organization=My%20Company" -o vpn.mobileconfig
+curl "http://localhost:3001/mdm/vpn?vpnName=My%20VPN&vpnServer=vpn.mycompany.com&organization=My%20Company" -o vpn.mobileconfig
 ```
 
 #### 4. 查看可用的參數
 ```bash
-curl http://localhost:3000/mdm/webclip/info
-curl http://localhost:3000/mdm/vpn/info
+curl http://localhost:3001/mdm/webclip/info
+curl http://localhost:3001/mdm/vpn/info
 ```
 
 ### 參數說明
@@ -169,7 +169,7 @@ logger.info('MDM profile generated', {
 npm run dev
 
 # 測試 MDM Profile 生成
-curl "http://localhost:3000/mdm/webclip?webClipName=Test%20App&webClipURL=https://example.com" -o test.mobileconfig
+curl "http://localhost:3001/mdm/webclip?webClipName=Test%20App&webClipURL=https://example.com" -o test.mobileconfig
 ```
 
 ### 使用 ngrok 進行公網測試
@@ -233,7 +233,7 @@ docker build -t mdm-poc .
 docker-compose up -d
 
 # 測試 MDM Profile 生成
-curl "http://localhost:3000/mdm/webclip?webClipName=Test%20App&webClipURL=https://example.com" -o test.mobileconfig
+curl "http://localhost:3001/mdm/webclip?webClipName=Test%20App&webClipURL=https://example.com" -o test.mobileconfig
 ```
 
 ### Digital Ocean 部署

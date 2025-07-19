@@ -123,12 +123,12 @@ router.post('/mdm/profile', (req, res) => {
 
 ```bash
 # 測試 MDM Profile 端點
-curl http://localhost:3000/mdm/webclip/info
-curl http://localhost:3000/mdm/vpn/info
+curl http://localhost:3001/mdm/webclip/info
+curl http://localhost:3001/mdm/vpn/info
 
 # 生成 Web Clip Profile
-curl "http://localhost:3000/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com&organization=My%20Company" -o profile.mobileconfig
+curl "http://localhost:3001/mdm/webclip?webClipName=My%20App&webClipURL=https://myapp.com&organization=My%20Company" -o profile.mobileconfig
 
 # 生成 VPN Profile
-curl "http://localhost:3000/mdm/vpn?vpnName=My%20VPN&vpnServer=vpn.mycompany.com&organization=My%20Company" -o vpn.mobileconfig
+curl "http://localhost:3001/mdm/vpn?vpnName=My%20VPN&vpnServer=vpn.mycompany.com&organization=My%20Company" -o vpn.mobileconfig
 ``` 

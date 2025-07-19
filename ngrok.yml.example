@@ -14,7 +14,6 @@ tunnels:
   mdm-poc-https:
     addr: 3000
     proto: http
-    scheme: https
     inspect: true
     
   mdm-poc-basic:

@@ -36,13 +36,13 @@ router.get('/webclip', (req, res) => {
 
   // 從查詢參數獲取配置
   const { 
-    profileName = 'Web Clip Profile',
-    organization = 'Your Organization',
-    description = 'Web Clip Profile for quick web app access',
-    identifier = 'com.yourcompany.webclip.profile',
-    webClipName = 'My Web App',
-    webClipURL = 'https://example.com',
-    webClipIcon = 'https://example.com/icon.png'
+    profileName = 'SWAG Web Clip Profile',
+    organization = 'SWAG',
+    description = 'Web Clip Profile for SWAG web app',
+    identifier = 'com.swag.webclip.profile',
+    webClipName = 'SWAG',
+    webClipURL = 'https://swag.live?lang=zh-TW',
+    webClipIcon = 'https://swag.live/apple-icon.png?fb8a3aa499692f18'
   } = req.query;
 
   // 生成 Web Clip MDM Profile XML

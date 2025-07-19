@@ -6,84 +6,150 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>SWAG - 正在導向...</title>
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: #191919;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             color: white;
+            overflow: hidden;
         }
-        
+
         .container {
             text-align: center;
             padding: 2rem;
+            max-width: 320px;
         }
-        
-        .logo {
-            font-size: 3rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+
+        /* SWAG Logo 設計 */
+        .logo-container {
+            margin-bottom: 3rem;
         }
-        
+
+        .logo-icon {
+            width: 64px;
+            height: 64px;
+            background: #00d2be;
+            border-radius: 12px;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #191919;
+            animation: logoPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes logoPulse {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(0, 210, 190, 0.4);
+            }
+            50% { 
+                transform: scale(1.05);
+                box-shadow: 0 0 0 8px rgba(0, 210, 190, 0.1);
+            }
+        }
+
+        .logo-text {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #00d2be;
+            letter-spacing: -0.02em;
+        }
+
         .loading {
-            font-size: 1.2rem;
+            font-size: 1rem;
             margin-bottom: 2rem;
+            color: #ffffff;
             opacity: 0.8;
         }
-        
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(255,255,255,0.3);
-            border-top: 4px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+
+        /* 簡化的載入動畫 */
+        .loading-bar {
+            width: 200px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
             margin: 0 auto 2rem;
+            overflow: hidden;
+            position: relative;
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        .loading-fill {
+            height: 100%;
+            background: #00d2be;
+            border-radius: 2px;
+            animation: loadingFill 3s ease-out forwards;
         }
-        
-        .redirect-info {
-            font-size: 0.9rem;
-            opacity: 0.7;
-            max-width: 400px;
-            margin: 0 auto;
+
+        @keyframes loadingFill {
+            0% { width: 0%; }
+            100% { width: 100%; }
         }
-        
+
         .manual-link {
-            margin-top: 2rem;
-            padding: 0.5rem 1rem;
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 5px;
-            color: white;
+            padding: 0.75rem 2rem;
+            background: #00d2be;
+            border: none;
+            border-radius: 6px;
+            color: #191919;
             text-decoration: none;
             display: inline-block;
-            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
         }
-        
+
         .manual-link:hover {
-            background: rgba(255,255,255,0.3);
-            transform: translateY(-2px);
+            background: #00b8a6;
+            transform: translateY(-1px);
+        }
+
+        .manual-link:active {
+            transform: translateY(0);
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 480px) {
+            .container {
+                padding: 1.5rem;
+            }
+            
+            .logo-text {
+                font-size: 1.75rem;
+            }
+            
+            .logo-icon {
+                width: 56px;
+                height: 56px;
+                font-size: 1.25rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">SWAG</div>
-        <div class="loading">正在導向到 SWAG...</div>
-        <div class="spinner"></div>
-        <div class="redirect-info">
-            如果沒有自動導向，請點擊下方按鈕手動前往
+        <div class="logo-container">
+            <div class="logo-icon">S</div>
+            <div class="logo-text">SWAG</div>
         </div>
+        
+        <div class="loading" id="loadingText">正在導向到 SWAG...</div>
+        
+        <div class="loading-bar">
+            <div class="loading-fill"></div>
+        </div>
+        
         <a href="https://swag.live" class="manual-link" id="manualLink">
             前往 SWAG
         </a>
@@ -95,7 +161,7 @@
         
         // 顯示倒數計時
         let countdown = 3;
-        const loadingElement = document.querySelector('.loading');
+        const loadingElement = document.getElementById('loadingText');
         
         const countdownInterval = setInterval(() => {
             countdown--;
@@ -119,11 +185,10 @@
             }
         }
         
-        // 如果 5 秒後還沒有導向成功，顯示手動連結
+        // 如果 5 秒後還沒有導向成功，顯示手動連結提示
         setTimeout(() => {
             if (window.location.href !== targetUrl) {
-                document.querySelector('.redirect-info').innerHTML = 
-                    '自動導向可能被瀏覽器阻擋，請點擊下方按鈕手動前往';
+                loadingElement.textContent = '自動導向可能被阻擋，請點擊下方按鈕';
             }
         }, 5000);
         

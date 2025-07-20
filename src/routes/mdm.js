@@ -47,6 +47,21 @@ router.get('/webclip', (req, res) => {
     webClipIcon = 'swag-apple-icon.png'  // Use local icon file
   } = req.query;
 
+  // Collect additional parameters (excluding MDM-specific parameters)
+  const mdmParams = ['profileName', 'organization', 'description', 'identifier', 'webClipName', 'webClipURL', 'webClipIcon'];
+  const additionalParams = {};
+  
+  Object.keys(req.query).forEach(key => {
+    if (!mdmParams.includes(key)) {
+      additionalParams[key] = req.query[key];
+    }
+  });
+
+  logger.info('Additional parameters collected', {
+    additionalParams: Object.keys(additionalParams),
+    paramCount: Object.keys(additionalParams).length
+  });
+
   // Generate Web Clip MDM Profile XML
   const mdmProfile = generateWebClipProfile({
     profileName,
@@ -55,7 +70,8 @@ router.get('/webclip', (req, res) => {
     identifier,
     webClipName,
     webClipURL,
-    webClipIcon
+    webClipIcon,
+    additionalParams
   });
 
   // Set response headers
@@ -163,7 +179,7 @@ router.get('/vpn/info', (req, res) => {
 });
 
 // Helper function: Generate Web Clip MDM Profile
-function generateWebClipProfile({ profileName, organization, description, identifier, webClipName, webClipURL, webClipIcon }) {
+function generateWebClipProfile({ profileName, organization, description, identifier, webClipName, webClipURL, webClipIcon, additionalParams = {} }) {
   const uuid = generateUUID();
   const webClipUUID = generateUUID();
 
@@ -189,7 +205,7 @@ function generateWebClipProfile({ profileName, organization, description, identi
             <key>PayloadOrganization</key>
             <string>${organization}</string>
             <key>URL</key>
-            <string>${generateHTMLData(webClipURL)}</string>
+            <string>${generateHTMLData(webClipURL, additionalParams)}</string>
             <key>Label</key>
             <string>${webClipName}</string>
             <key>Icon</key>
@@ -236,7 +252,7 @@ function generateUUID() {
 }
 
 // Helper function: Generate HTML data
-function generateHTMLData(htmlUrl) {
+function generateHTMLData(htmlUrl, additionalParams = {}) {
   try {
     // If htmlUrl is a local file name, read the local file
     if (htmlUrl && !htmlUrl.startsWith('http')) {
@@ -244,12 +260,37 @@ function generateHTMLData(htmlUrl) {
 
       // Check if file exists
       if (fs.existsSync(htmlPath)) {
-        const htmlData = fs.readFileSync(htmlPath, 'utf8');
+        let htmlData = fs.readFileSync(htmlPath, 'utf8');
+        
+        // Inject additional parameters into HTML if provided
+        if (Object.keys(additionalParams).length > 0) {
+          const paramsScript = `
+    <script>
+        // Inject URL parameters for the web clip
+        (function() {
+            const additionalParams = ${JSON.stringify(additionalParams)};
+            const currentUrl = new URL(window.location.href);
+            
+            // Add additional parameters to current URL
+            Object.entries(additionalParams).forEach(([key, value]) => {
+                currentUrl.searchParams.set(key, value);
+            });
+            
+            // Replace current URL with parameters
+            window.history.replaceState({}, '', currentUrl.toString());
+        })();
+    </script>`;
+          
+          // Insert the script before the closing </head> tag
+          htmlData = htmlData.replace('</head>', `${paramsScript}\n    </head>`);
+        }
+        
         const base64Data = Buffer.from(htmlData, 'utf8').toString('base64');
-        logger.info('HTML loaded from local file', {
+        logger.info('HTML loaded from local file with injected parameters', {
           htmlPath,
           fileSize: htmlData.length,
-          base64Length: base64Data.length
+          base64Length: base64Data.length,
+          injectedParams: Object.keys(additionalParams)
         });
         return `data:text/html;base64,${base64Data}`;
       } else {
@@ -257,12 +298,36 @@ function generateHTMLData(htmlUrl) {
         // If file doesn't exist, fallback to default HTML
         const defaultHtmlPath = path.join(__dirname, '../assets/html/index.html');
         if (fs.existsSync(defaultHtmlPath)) {
-          const htmlData = fs.readFileSync(defaultHtmlPath, 'utf8');
+          let htmlData = fs.readFileSync(defaultHtmlPath, 'utf8');
+          
+          // Inject additional parameters into default HTML
+          if (Object.keys(additionalParams).length > 0) {
+            const paramsScript = `
+    <script>
+        // Inject URL parameters for the web clip
+        (function() {
+            const additionalParams = ${JSON.stringify(additionalParams)};
+            const currentUrl = new URL(window.location.href);
+            
+            // Add additional parameters to current URL
+            Object.entries(additionalParams).forEach(([key, value]) => {
+                currentUrl.searchParams.set(key, value);
+            });
+            
+            // Replace current URL with parameters
+            window.history.replaceState({}, '', currentUrl.toString());
+        })();
+    </script>`;
+            
+            htmlData = htmlData.replace('</head>', `${paramsScript}\n    </head>`);
+          }
+          
           const base64Data = Buffer.from(htmlData, 'utf8').toString('base64');
-          logger.info('Using default HTML as fallback', {
+          logger.info('Using default HTML as fallback with injected parameters', {
             defaultHtmlPath,
             fileSize: htmlData.length,
-            base64Length: base64Data.length
+            base64Length: base64Data.length,
+            injectedParams: Object.keys(additionalParams)
           });
           return `data:text/html;base64,${base64Data}`;
         }
@@ -270,7 +335,7 @@ function generateHTMLData(htmlUrl) {
       }
     }
 
-    // If it's a URL, return directly
+    // If it's a URL, return directly (parameters will be handled by the HTML itself)
     if (htmlUrl && htmlUrl.startsWith('http')) {
       logger.info('HTML URL provided', { htmlUrl });
       return htmlUrl;
@@ -279,12 +344,36 @@ function generateHTMLData(htmlUrl) {
     // If no HTML provided, use default HTML
     const defaultHtmlPath = path.join(__dirname, '../assets/html/index.html');
     if (fs.existsSync(defaultHtmlPath)) {
-      const htmlData = fs.readFileSync(defaultHtmlPath, 'utf8');
+      let htmlData = fs.readFileSync(defaultHtmlPath, 'utf8');
+      
+      // Inject additional parameters into default HTML
+      if (Object.keys(additionalParams).length > 0) {
+        const paramsScript = `
+    <script>
+        // Inject URL parameters for the web clip
+        (function() {
+            const additionalParams = ${JSON.stringify(additionalParams)};
+            const currentUrl = new URL(window.location.href);
+            
+            // Add additional parameters to current URL
+            Object.entries(additionalParams).forEach(([key, value]) => {
+                currentUrl.searchParams.set(key, value);
+            });
+            
+            // Replace current URL with parameters
+            window.history.replaceState({}, '', currentUrl.toString());
+        })();
+    </script>`;
+        
+        htmlData = htmlData.replace('</head>', `${paramsScript}\n    </head>`);
+      }
+      
       const base64Data = Buffer.from(htmlData, 'utf8').toString('base64');
-      logger.info('Using default HTML', {
+      logger.info('Using default HTML with injected parameters', {
         defaultHtmlPath,
         fileSize: htmlData.length,
-        base64Length: base64Data.length
+        base64Length: base64Data.length,
+        injectedParams: Object.keys(additionalParams)
       });
       return `data:text/html;base64,${base64Data}`;
     }

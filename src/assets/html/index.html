@@ -523,6 +523,24 @@
                     url.searchParams.append(CONFIG_PARAM_NAME, configParams);
                 }
                 
+                // Add additional URL parameters from current page URL
+                const currentUrl = new URL(window.location.href);
+                const additionalParams = {};
+                
+                // Get all query parameters from current URL
+                for (const [key, value] of currentUrl.searchParams.entries()) {
+                    // Skip parameters that are already handled by the MDM system
+                    const mdmParams = ['profileName', 'organization', 'description', 'identifier', 'webClipName', 'webClipURL', 'webClipIcon'];
+                    if (!mdmParams.includes(key)) {
+                        additionalParams[key] = value;
+                    }
+                }
+                
+                // Add additional parameters to the generated URL
+                Object.entries(additionalParams).forEach(([key, value]) => {
+                    url.searchParams.append(key, value);
+                });
+                
                 return url.href;
             } catch (error) {
                 console.error('Error creating URL:', error);
@@ -583,12 +601,29 @@
 
             // Generate and display config URL
             const configUrl = generateConfigUrl();
+            
+            // Get additional parameters for display
+            const currentUrl = new URL(window.location.href);
+            const additionalParams = {};
+            const mdmParams = ['profileName', 'organization', 'description', 'identifier', 'webClipName', 'webClipURL', 'webClipIcon'];
+            
+            for (const [key, value] of currentUrl.searchParams.entries()) {
+                if (!mdmParams.includes(key)) {
+                    additionalParams[key] = value;
+                }
+            }
+            
+            const additionalParamsHtml = Object.keys(additionalParams).length > 0 ? 
+                `<p><strong>額外參數:</strong> ${Object.entries(additionalParams).map(([k, v]) => `${k}=${v}`).join(', ')}</p>` : 
+                '<p><strong>額外參數:</strong> 無</p>';
+            
             const configUrlHtml = configUrl ? `
                 <div class="resource-item">
                     <h4>生成的配置 URL</h4>
                     <p><strong>URL:</strong> <a href="${configUrl}" target="_blank" style="color: #00d2be; word-break: break-all;">${configUrl}</a></p>
                     <p><strong>參數名稱:</strong> ${CONFIG_PARAM_NAME}</p>
                     <p><strong>分隔符:</strong> ${CONFIG_SEPARATOR}</p>
+                    ${additionalParamsHtml}
                     <button onclick="copyUrlToClipboard('${configUrl}')" style="background: #00d2be; color: #191919; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; margin-top: 0.5rem;">
                         複製 URL
                     </button>

@@ -248,6 +248,9 @@
         const CONFIG_SEPARATOR = ':::'; // Separator for config key-value pairs
         const CONFIG_PARAM_NAME = 'config'; // Parameter name for config in URL
         
+        // MDM configuration will be injected by server
+        const MDM_PARAMS = window.MDM_PARAMS || ['profileName', 'organization', 'description', 'identifier', 'webClipName', 'webClipURL', 'webClipIcon'];
+        
         // Domain rotation tracking
         let currentDomainIndex = 0;
         let domainFailures = {};
@@ -605,10 +608,9 @@
             // Get additional parameters for display
             const currentUrl = new URL(window.location.href);
             const additionalParams = {};
-            const mdmParams = ['profileName', 'organization', 'description', 'identifier', 'webClipName', 'webClipURL', 'webClipIcon'];
             
             for (const [key, value] of currentUrl.searchParams.entries()) {
-                if (!mdmParams.includes(key)) {
+                if (!MDM_PARAMS.includes(key)) {
                     additionalParams[key] = value;
                 }
             }

@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const { logger } = require('../logger');
+const { MDM_PARAMS } = require('../config/mdm-params');
 
 const router = express.Router();
 
@@ -48,11 +49,10 @@ router.get('/webclip', (req, res) => {
   } = req.query;
 
   // Collect additional parameters (excluding MDM-specific parameters)
-  const mdmParams = ['profileName', 'organization', 'description', 'identifier', 'webClipName', 'webClipURL', 'webClipIcon'];
   const additionalParams = {};
   
   Object.keys(req.query).forEach(key => {
-    if (!mdmParams.includes(key)) {
+    if (!MDM_PARAMS.includes(key)) {
       additionalParams[key] = req.query[key];
     }
   });
@@ -262,7 +262,17 @@ function generateHTMLData(htmlUrl, additionalParams = {}) {
       if (fs.existsSync(htmlPath)) {
         let htmlData = fs.readFileSync(htmlPath, 'utf8');
         
-        // Inject additional parameters into HTML if provided
+        // Inject MDM configuration and additional parameters into HTML
+        const mdmConfigScript = `
+    <script>
+        // Inject MDM configuration
+        window.MDM_PARAMS = ${JSON.stringify(MDM_PARAMS)};
+    </script>`;
+        
+        // Insert MDM config script before the closing </head> tag
+        htmlData = htmlData.replace('</head>', `${mdmConfigScript}\n    </head>`);
+        
+        // Inject additional parameters if provided
         if (Object.keys(additionalParams).length > 0) {
           const paramsScript = `
     <script>
@@ -300,7 +310,17 @@ function generateHTMLData(htmlUrl, additionalParams = {}) {
         if (fs.existsSync(defaultHtmlPath)) {
           let htmlData = fs.readFileSync(defaultHtmlPath, 'utf8');
           
-          // Inject additional parameters into default HTML
+          // Inject MDM configuration and additional parameters into default HTML
+          const mdmConfigScript = `
+    <script>
+        // Inject MDM configuration
+        window.MDM_PARAMS = ${JSON.stringify(MDM_PARAMS)};
+    </script>`;
+          
+          // Insert MDM config script before the closing </head> tag
+          htmlData = htmlData.replace('</head>', `${mdmConfigScript}\n    </head>`);
+          
+          // Inject additional parameters if provided
           if (Object.keys(additionalParams).length > 0) {
             const paramsScript = `
     <script>
@@ -346,7 +366,17 @@ function generateHTMLData(htmlUrl, additionalParams = {}) {
     if (fs.existsSync(defaultHtmlPath)) {
       let htmlData = fs.readFileSync(defaultHtmlPath, 'utf8');
       
-      // Inject additional parameters into default HTML
+      // Inject MDM configuration and additional parameters into default HTML
+      const mdmConfigScript = `
+    <script>
+        // Inject MDM configuration
+        window.MDM_PARAMS = ${JSON.stringify(MDM_PARAMS)};
+    </script>`;
+      
+      // Insert MDM config script before the closing </head> tag
+      htmlData = htmlData.replace('</head>', `${mdmConfigScript}\n    </head>`);
+      
+      // Inject additional parameters if provided
       if (Object.keys(additionalParams).length > 0) {
         const paramsScript = `
     <script>

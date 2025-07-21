@@ -290,7 +290,7 @@
                         <div class="form-group">
                             <label for="webclipUrl">Web Clip URL *</label>
                             <input type="url" id="webclipUrl" name="webclipUrl" required 
-                                   placeholder="例如：https://swag.com" value="https://swag.com">
+                                   placeholder="例如：https://swag.live" value="https://swag.live">
                         </div>
                         
                         <div class="form-group">
@@ -301,14 +301,14 @@
                         
                         <div class="form-group">
                             <div class="checkbox-group">
-                                <input type="checkbox" id="isRemovable" name="isRemovable" checked>
+                                <input type="checkbox" id="isRemovable" name="isRemovable">
                                 <label for="isRemovable">允許移除</label>
                             </div>
                         </div>
                         
                         <div class="form-group">
                             <div class="checkbox-group">
-                                <input type="checkbox" id="fullScreen" name="fullScreen">
+                                <input type="checkbox" id="fullScreen" name="fullScreen" checked>
                                 <label for="fullScreen">全螢幕模式</label>
                             </div>
                         </div>
@@ -321,16 +321,6 @@
                         進階設定 <span id="advancedToggle">▼</span>
                     </h3>
                     <div class="form-content hidden" id="advancedSettings">
-                        <div class="form-group">
-                            <label for="expirationDate">過期日期</label>
-                            <input type="datetime-local" id="expirationDate" name="expirationDate">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="removalDate">移除日期</label>
-                            <input type="datetime-local" id="removalDate" name="removalDate">
-                        </div>
-                        
                         <div class="form-group">
                             <label for="scope">範圍</label>
                             <select id="scope" name="scope">

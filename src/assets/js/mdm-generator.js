@@ -41,8 +41,6 @@ function getFormData() {
     webclipIcon: formData.get("webclipIcon"),
     isRemovable: formData.get("isRemovable") === "on",
     fullScreen: formData.get("fullScreen") === "on",
-    expirationDate: formData.get("expirationDate"),
-    removalDate: formData.get("removalDate"),
     scope: formData.get("scope"),
     payloadVersion: parseInt(formData.get("payloadVersion")) || 1,
     uuid: formData.get("uuid") || generateUUID(),
@@ -51,30 +49,12 @@ function getFormData() {
 
 // Generate MDM XML
 function generateMDMXML(data) {
-  const now = new Date();
-  const expirationDate = data.expirationDate
-    ? new Date(data.expirationDate)
-    : new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
-  const removalDate = data.removalDate ? new Date(data.removalDate) : null;
-
   const isRemovable = data.isRemovable ? "<true/>" : "<false/>";
   const fullScreen = data.fullScreen ? "<true/>" : "<false/>";
-
-  const expirationString = expirationDate
-    .toISOString()
-    .replace(/\.\d{3}Z$/, "Z");
-  const removalString = removalDate
-    ? removalDate.toISOString().replace(/\.\d{3}Z$/, "Z")
-    : "";
 
   const iconData = data.webclipIcon
     ? `<key>Icon</key>
             <data>${data.webclipIcon}</data>`
-    : "";
-
-  const removalDateXML = removalString
-    ? `<key>RemovalDate</key>
-            <date>${removalString}</date>`
     : "";
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -97,7 +77,7 @@ function generateMDMXML(data) {
             <key>PayloadDescription</key>
             <string>Web Clip for ${data.webclipTitle}</string>
             <key>URL</key>
-            <string>https://swag.live</string>
+            <string>${data.webclipUrl}</string>
             <key>Label</key>
             <string>${data.webclipTitle}</string>
             <key>IsRemovable</key>
@@ -129,9 +109,6 @@ function generateMDMXML(data) {
     <string>${data.organization}</string>
     <key>PayloadScope</key>
     <string>${data.scope}</string>
-    <key>PayloadExpirationDate</key>
-    <date>${expirationString}</date>
-    ${removalDateXML}
 </dict>
 </plist>`;
 }
@@ -266,16 +243,6 @@ function resetForm() {
 
 // Initialize when page loads
 document.addEventListener("DOMContentLoaded", function () {
-  // Set default expiration date to 1 year from now
-  const now = new Date();
-  const oneYearLater = new Date(
-    now.getFullYear() + 1,
-    now.getMonth(),
-    now.getDate()
-  );
-  const localDateTime = oneYearLater.toISOString().slice(0, 16);
-  document.getElementById("expirationDate").value = localDateTime;
-
   // Add event listeners for toggle sections
   document.querySelectorAll(".toggle-section").forEach((toggle) => {
     toggle.addEventListener("click", function () {

@@ -245,8 +245,6 @@ function generateWebClipProfile({
     <string>${description}</string>
     <key>PayloadOrganization</key>
     <string>${organization}</string>
-    <key>PayloadExpirationDate</key>
-    <date>2026-12-31T23:59:59Z</date>
 </dict>
 </plist>`;
 }

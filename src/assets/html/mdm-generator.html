@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MDM 配置生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .form-section h3 {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            margin: 0;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .form-section h3:hover {
+            background: #e9ecef;
+        }
+
+        .form-content {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .result-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e1e5e9;
+        }
+
+        .result-section h3 {
+            margin-bottom: 15px;
+            color: #495057;
+        }
+
+        .result-content {
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 MDM 配置生成器</h1>
+            <p>在瀏覽器中直接生成 iOS MDM 配置檔案</p>
+        </div>
+
+        <div class="content">
+            <form id="mdmForm">
+                <!-- Basic Settings -->
+                <div class="form-section">
+                    <h3 class="toggle-section" data-toggle="basicSettings">
+                        基本設定 <span id="basicToggle">▼</span>
+                    </h3>
+                    <div class="form-content" id="basicSettings">
+                        <div class="form-group">
+                            <label for="profileName">配置檔案名稱 *</label>
+                            <input type="text" id="profileName" name="profileName" required 
+                                   placeholder="例如：SWAG Web Clip Profile" value="SWAG Web Clip Profile">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="profileDescription">配置檔案描述</label>
+                            <textarea id="profileDescription" name="profileDescription" 
+                                      placeholder="描述此配置檔案的用途...">SWAG Web Clip 配置檔案</textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="organization">組織名稱 *</label>
+                            <input type="text" id="organization" name="organization" required 
+                                   placeholder="例如：SWAG Inc." value="SWAG Inc.">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="identifier">配置檔案識別碼 *</label>
+                            <input type="text" id="identifier" name="identifier" required 
+                                   placeholder="例如：com.swag.webclip" value="com.swag.webclip">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Web Clip Settings -->
+                <div class="form-section">
+                    <h3 class="toggle-section" data-toggle="webclipSettings">
+                        Web Clip 設定 <span id="webclipToggle">▼</span>
+                    </h3>
+                    <div class="form-content" id="webclipSettings">
+                        <div class="form-group">
+                            <label for="webclipTitle">Web Clip 標題 *</label>
+                            <input type="text" id="webclipTitle" name="webclipTitle" required 
+                                   placeholder="例如：SWAG App" value="SWAG App">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="webclipUrl">Web Clip URL *</label>
+                            <input type="url" id="webclipUrl" name="webclipUrl" required 
+                                   placeholder="例如：https://swag.com" value="https://swag.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="webclipIcon">圖示 (Base64 編碼)</label>
+                            <textarea id="webclipIcon" name="webclipIcon" 
+                                      placeholder="可選：貼上 Base64 編碼的圖示..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="isRemovable" name="isRemovable" checked>
+                                <label for="isRemovable">允許移除</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="fullScreen" name="fullScreen">
+                                <label for="fullScreen">全螢幕模式</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Settings -->
+                <div class="form-section">
+                    <h3 class="toggle-section" data-toggle="advancedSettings">
+                        進階設定 <span id="advancedToggle">▼</span>
+                    </h3>
+                    <div class="form-content hidden" id="advancedSettings">
+                        <div class="form-group">
+                            <label for="expirationDate">過期日期</label>
+                            <input type="datetime-local" id="expirationDate" name="expirationDate">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="removalDate">移除日期</label>
+                            <input type="datetime-local" id="removalDate" name="removalDate">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="scope">範圍</label>
+                            <select id="scope" name="scope">
+                                <option value="System">系統</option>
+                                <option value="User">使用者</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Parameters -->
+                <div class="form-section">
+                    <h3 class="toggle-section" data-toggle="additionalParams">
+                        額外參數 <span id="additionalToggle">▼</span>
+                    </h3>
+                    <div class="form-content hidden" id="additionalParams">
+                        <div class="form-group">
+                            <label for="payloadVersion">Payload 版本</label>
+                            <input type="number" id="payloadVersion" name="payloadVersion" value="1" min="1">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="uuid">UUID (留空自動生成)</label>
+                            <input type="text" id="uuid" name="uuid" placeholder="自動生成">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary" id="generateBtn">生成 MDM 配置</button>
+                    <button type="button" class="btn btn-secondary" id="previewBtn">預覽配置</button>
+                    <button type="button" class="btn btn-secondary" id="resetBtn">重置表單</button>
+                </div>
+            </form>
+
+            <div id="resultSection" class="result-section hidden">
+                <h3>生成的 MDM 配置</h3>
+                <div id="resultContent" class="result-content"></div>
+                
+                <div class="btn-group" style="margin-top: 1rem;">
+                    <button type="button" class="btn btn-primary" id="downloadBtn">下載配置檔案</button>
+                    <button type="button" class="btn btn-secondary" id="copyBtn">複製到剪貼簿</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/assets/js/mdm-generator.js"></script>
+</body>
+</html> 

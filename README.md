@@ -52,8 +52,35 @@
 ### 網頁功能
 - `GET /mdm/webclip/html` - 自動導向頁面 (導向到 https://swag.live)
 - `GET /assets/html/index.html` - 靜態 HTML 檔案
+- `GET /mdm/generator` - Client-Side MDM 配置生成器
 
 ## MDM Profile 使用指南
+
+### Client-Side MDM 生成器
+
+我們提供了一個完全在瀏覽器中運行的 MDM 配置生成器，無需伺服器端處理：
+
+#### 訪問生成器
+```
+http://localhost:3001/mdm/generator
+```
+
+#### 功能特色
+- 🚀 **完全客戶端運行**: 所有處理都在瀏覽器中完成
+- 📱 **iOS MDM 格式**: 生成標準的 `.mobileconfig` 檔案
+- 🎨 **美觀的 UI**: 現代化的響應式設計
+- ⚡ **即時預覽**: 可以預覽生成的 XML 內容
+- 💾 **一鍵下載**: 直接下載生成的配置檔案
+- 📋 **剪貼簿支援**: 複製 XML 內容到剪貼簿
+
+#### 使用步驟
+1. 填寫基本設定（配置檔案名稱、組織等）
+2. 設定 Web Clip 參數（標題、URL、圖示等）
+3. 選擇性設定進階選項（過期日期、移除日期等）
+4. 點擊「生成 MDM 配置」
+5. 預覽並下載配置檔案
+
+詳細說明請參考：[MDM 生成器文檔](docs/mdm-generator-demo.md)
 
 ### 快速開始
 

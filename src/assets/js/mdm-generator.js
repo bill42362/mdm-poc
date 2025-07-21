@@ -104,6 +104,8 @@ function generateMDMXML(data) {
             ${isRemovable}
             <key>Precomposed</key>
             <true/>
+            <key>IgnoreManifestScope</key>
+            <true/>
             <key>FullScreen</key>
             ${fullScreen}
             ${iconData}
